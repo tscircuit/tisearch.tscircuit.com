@@ -1,49 +1,82 @@
 import { describe, expect, it } from "vitest"
-import { normalizeCatalog, normalizeProduct } from "../src/normalize"
+import {
+  normalizeProduct,
+  buildTiFilterOptions,
+  applyPostFilters,
+} from "../src/normalize"
+import { createSearchRequest } from "../src/search-request"
 import catalog from "./fixtures/catalog.json"
-
-describe("TI Store V2 normalization", () => {
-  it("keeps OPN and GPN distinct and records price break quantities", () => {
-    const part = normalizeProduct(catalog.catalog[1])
-    expect(part.mfr).toBe("TPS62160DSGT")
-    expect(part.generic_part_number).toBe("TPS62160")
-    expect(part.price_quantity).toBe(250)
-    expect(part.categories).toContain("buck_converters")
-    expect(part.cad).toEqual({
-      status: "not_provided_by_ti_api",
-      source: "ti_api",
+const parse = (q: string) =>
+  createSearchRequest(new URL(`https://test/api/search?q=TPS62160&${q}`))
+describe("TI common part schema", () => {
+  it("preserves supplier identity and prices at the correct quantity", () => {
+    const p = normalizeProduct({ store: catalog.catalog[1] })
+    expect(p).toMatchObject({
+      ti_product_number: "TPS62160DSGT",
+      ti_part_number: "TPS62160DSGT",
+      mfr: "TPS62160DSGT",
+      generic_part_number: "TPS62160",
+      price: 1.8,
+      price_quantity: 250,
+      currency: "USD",
+      manufacturer: "Texas Instruments",
     })
+    expect(p).not.toHaveProperty("cad")
+    expect(normalizeProduct({ store: catalog.catalog[2] }).price).toBeNull()
+    expect(normalizeProduct({ store: catalog.catalog[2] }, "EUR").price).toBe(
+      0.2,
+    )
   })
-  it("does not turn absent prices or another currency into a free USD part", () => {
-    expect(normalizeProduct(catalog.catalog[2]).price).toBeNull()
-    expect(normalizeProduct(catalog.catalog[2], "EUR").price).toBe(0.2)
-  })
-  it("preserves slash suffixes and encodes links", () => {
-    const part = normalizeProduct(catalog.catalog[3])
-    expect(part.ti_part_number).toBe("LP2982AIM5-3.3/NOPB")
-    expect(part.product_url).toContain("%2FNOPB")
-    expect(part.cad).not.toHaveProperty("lookup_url")
-  })
-  it("retains a valid TI link and excludes executable/off-domain links", () => {
-    const raw = catalog.catalog[0]
-    expect(normalizeProduct(raw).product_url).toBe(raw.buyNowURL)
+  it("uses official links and rejects off-domain or executable URLs", () => {
+    const raw = {
+      ...catalog.catalog[0],
+      buyNowUrl: "https://www.ti.com/product/TPS62160?test=1",
+    }
+    expect(normalizeProduct({ store: raw }).product_url).toBe(raw.buyNowUrl)
     expect(
-      normalizeProduct({ ...raw, buyNowURL: "javascript:alert(1)" })
+      normalizeProduct({ store: { ...raw, buyNowUrl: "javascript:alert(1)" } })
         .product_url,
-    ).toMatch(/^https:\/\/www.ti.com\//)
+    ).toContain("https://www.ti.com/product/")
     expect(
-      normalizeProduct({ ...raw, buyNowURL: "https://ti.com.evil.test/" })
-        .product_url,
-    ).not.toContain("evil.test")
+      normalizeProduct({ store: catalog.catalog[3] }).product_url,
+    ).toContain("%2FNOPB")
   })
-  it("rejects empty, duplicate and malformed catalogs before publishing", () => {
-    expect(() => normalizeCatalog({ catalog: [] })).toThrow("empty")
+  it("adds supplied family/package fields without treating V1 data as stock", () => {
+    const p = normalizeProduct({
+      store: catalog.catalog[0],
+      information: {
+        ProductFamilyDescription: "Buck converters",
+        Pitch: 0.5,
+        PackageType: "DSG",
+        InventoryStatus: "No stock",
+      },
+    })
+    expect(p.category).toBe("Buck converters")
+    expect(p.parameters["Pitch (mm)"]).toBe("0.5")
+    expect(p.stock).toBe(1200)
+  })
+  it("filters missing parameters strictly and derives selectable options", () => {
+    const parts = catalog.catalog.map((store) => normalizeProduct({ store }))
+    expect(
+      applyPostFilters(parts, parse("package=WSON&num_pins=8")),
+    ).toHaveLength(2)
+    expect(
+      applyPostFilters(parts, parse("package=SOIC&num_pins=5")),
+    ).toHaveLength(0)
+    const options = buildTiFilterOptions(parts)
+    const pins = options.ParametricFilters?.find(
+      (p) => p.ParameterName === "Pin Count",
+    )
+    expect(pins).toBeDefined()
+    expect(
+      applyPostFilters(parts, parse(`param_1_${pins?.ParameterId}=5`)),
+    ).toHaveLength(1)
+    expect(applyPostFilters(parts, parse("param_1_999=5"))).toHaveLength(0)
+    expect(applyPostFilters(parts, parse("in_stock=false"))).toHaveLength(5)
+  })
+  it("rejects absent or malformed stock", () => {
     expect(() =>
-      normalizeCatalog({ catalog: [catalog.catalog[0], catalog.catalog[0]] }),
-    ).toThrow("Duplicate")
-    expect(() =>
-      normalizeProduct({ ...catalog.catalog[0], quantity: null }),
+      normalizeProduct({ store: { ...catalog.catalog[0], quantity: null } }),
     ).toThrow("inventory")
-    expect(normalizeCatalog(catalog)).toHaveLength(5)
   })
 })

@@ -1,181 +1,305 @@
-import { env } from "cloudflare:test"
-import { beforeEach, describe, expect, it } from "vitest"
+import {
+  createExecutionContext,
+  env,
+  waitOnExecutionContext,
+} from "cloudflare:test"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import worker from "../src/index"
-import { claimCatalogRequestSql, createSnapshotSql } from "../src/catalog-sql"
-import { normalizeCatalog } from "../src/normalize"
+import type { Env } from "../src/types"
 import catalog from "./fixtures/catalog.json"
 
-const get = (path: string, options?: RequestInit) =>
-  worker.fetch(new Request(`https://example.test${path}`, options), env)
-const seed = async (id = "snapshot-1", time = Date.now()) => {
-  await env.DB.exec(
-    createSnapshotSql(normalizeCatalog(catalog), id, time, "USD"),
+let runtime: Env
+let fetcher: ReturnType<typeof vi.fn>
+const contexts: ExecutionContext[] = []
+const get = async (path: string, options?: RequestInit) => {
+  const ctx = createExecutionContext()
+  contexts.push(ctx)
+  return worker.fetch(
+    new Request(`https://example.test${path}`, options),
+    runtime,
+    ctx,
   )
 }
-
-describe("routes before catalog sync", () => {
-  it("serves the compact TI home and category JSON", async () => {
-    expect(await (await get("/")).text()).toContain("TI In-Stock Parts Engine")
-    expect(
-      ((await (await get("/categories/list.json")).json()) as any).categories
-        .length,
-    ).toBeGreaterThan(10)
-    expect(await (await get("/health")).json()).toEqual({ ok: true })
-  })
-  it("returns a useful 503 instead of a misleading empty result", async () => {
-    const response = await get("/api/search?q=TPS62160")
-    expect(response.status).toBe(503)
-    expect(response.headers.get("cache-control")).toBe("no-store")
-    expect(await response.text()).toContain("not been synchronized")
-  })
-  it.each([
-    "",
-    "?q=%22%22",
-    "?q=test&limit=NaN",
-    "?q=test&offset=-1",
-    "?q=test&limit=101",
-    "?q=test&in_stock=maybe",
-  ])("rejects invalid search %s before DB access", async (query) => {
-    expect((await get(`/api/search${query}`)).status).toBe(400)
-  })
-  it("handles CORS, unsupported methods and unknown API routes", async () => {
-    const preflight = await get("/api/search", { method: "OPTIONS" })
-    expect(preflight.status).toBe(204)
-    expect(preflight.headers.get("access-control-allow-origin")).toBe("*")
-    expect((await get("/api/search", { method: "POST" })).status).toBe(405)
-    const missing = await get("/api/missing")
-    expect(missing.status).toBe(404)
-    expect(missing.headers.get("content-type")).toContain("application/json")
-  })
+const drain = async () => {
+  for (const ctx of contexts.splice(0)) await waitOnExecutionContext(ctx)
+}
+const body = async (path: string) => (await (await get(path)).json()) as any
+const respond = (url: string | URL) => {
+  const u = new URL(url)
+  if (u.pathname.includes("oauth"))
+    return Response.json({ access_token: "test-token", expires_in: 3600 })
+  const pn = decodeURIComponent(u.pathname.split("/").at(-1) ?? "")
+  const part = catalog.catalog.find((p) => p.tiPartNumber === pn)
+  if (part) return Response.json(part)
+  if (u.pathname === "/v2/store/products")
+    return Response.json({
+      content: catalog.catalog.slice(0, 2),
+      totalElements: 2,
+    })
+  if (u.pathname === "/v1/products")
+    return Response.json({
+      Content: [
+        {
+          Identifier: "TPS62160DSGR",
+          ProductFamilyDescription: "Buck converters",
+          PackageType: "DSG",
+        },
+      ],
+      TotalElements: 1,
+    })
+  return new Response(null, { status: 404 })
+}
+beforeEach(() => {
+  runtime = {
+    ...env,
+    TI_CLIENT_ID: "fixture-id",
+    TI_CLIENT_SECRET: "fixture-secret",
+  }
+  fetcher = vi
+    .fn()
+    .mockImplementation((url: string | URL) => Promise.resolve(respond(url)))
+  vi.stubGlobal("fetch", fetcher)
+})
+afterEach(async () => {
+  await drain()
+  vi.unstubAllGlobals()
 })
 
-describe("search against real D1 migrations and FTS", () => {
-  beforeEach(async () => {
-    await seed()
-  })
-  it("finds keywords and ranks exact OPNs above stock", async () => {
-    const body = (await (await get("/api/search?q=TPS62160DSGR")).json()) as any
-    expect(body.components[0].ti_part_number).toBe("TPS62160DSGR")
-    const prefix = (await (await get("/api/search?q=TPS62160")).json()) as any
-    expect(prefix.total).toBe(2)
-    expect(prefix.components[0].ti_part_number).toBe("TPS62160DSGT")
-    expect(body.source).toBe("ti")
-    expect(body.stale).toBe(false)
-    expect(body.components[0].cad).toEqual({
-      status: "not_provided_by_ti_api",
-      source: "ti_api",
+describe("reference-pattern Worker and D1 cache", () => {
+  it("serves home, health, categories and an empty index without upstream calls", async () => {
+    expect(await body("/health")).toEqual({ ok: true })
+    expect(await (await get("/")).text()).toContain("TI In-Stock Parts Engine")
+    expect(
+      (await body("/categories/list.json")).categories.length,
+    ).toBeGreaterThan(5)
+    expect(await body("/api/index/search?q=buck")).toMatchObject({
+      components: [],
+      partial: true,
+      source: "ti-d1-index",
     })
+    expect(fetcher).not.toHaveBeenCalled()
   })
-  it("paginates category filters and counts the complete matching set", async () => {
-    const body = (await (
-      await get(
-        "/buck_converters/list.json?package=WSON&pin_count=8&limit=1&offset=1",
-      )
-    ).json()) as any
-    expect(body.buck_converters).toHaveLength(1)
-    expect(body.meta.total).toBe(2)
-    expect(body.buck_converters[0].ti_part_number).toBe("TPS62160DSGR")
+  it("fetches on a cold search, then serves a cache hit and learns an FTS part", async () => {
+    const first = await get("/api/search?q=TPS62160DSGR")
+    expect(first.headers.get("x-cache")).toBe("MISS")
+    expect((await first.json()) as any).toMatchObject({
+      cached: false,
+      source: "ti",
+      total: 1,
+      upstream_total: 1,
+    })
+    const calls = fetcher.mock.calls.length
+    expect(
+      (await get("/api/search?q=TPS62160DSGR")).headers.get("x-cache"),
+    ).toBe("HIT")
+    expect(fetcher).toHaveBeenCalledTimes(calls)
+    expect((await body("/api/index/search?q=buck")).components[0].mfr).toBe(
+      "TPS62160DSGR",
+    )
+    expect(
+      (await body("/footprint_index/list.json")).footprints[0],
+    ).toMatchObject({ package: "WSON (DSG)", tscircuit_accepts: false })
+    const row = await env.DB.prepare(
+      "SELECT response_json,request_json FROM search_cache",
+    ).first<any>()
+    expect(JSON.stringify(row)).not.toMatch(/fixture-secret|test-token/)
   })
-  it("preserves exact /NOPB parts and treats FTS syntax as literal tokens", async () => {
-    const body = (await (
-      await get("/api/search?q=LP2982AIM5-3.3%2FNOPB")
-    ).json()) as any
-    expect(body.components[0].ti_part_number).toBe("LP2982AIM5-3.3/NOPB")
-    expect((await get("/api/search?q=TPS62160%20OR%20%22")).status).toBe(200)
-    expect((await get("/api/search?q=buck&package=%25")).status).toBe(200)
+  it("shares simultaneous cold refreshes within the Worker", async () => {
+    const results = await Promise.all([
+      get("/api/search?q=TPS62160DSGR"),
+      get("/api/search?q=TPS62160DSGR"),
+    ])
+    expect(results.every((r) => r.status === 200)).toBe(true)
+    expect(fetcher).toHaveBeenCalledTimes(2)
   })
-  it("defaults to in-stock and supports opt-in out-of-stock discovery", async () => {
-    const a = (await (await get("/adcs/list.json")).json()) as any
-    const b = (await (
-      await get("/adcs/list.json?in_stock=false")
-    ).json()) as any
-    expect(a.adcs).toHaveLength(0)
-    expect(b.adcs[0].stock).toBe(0)
+  it("returns stale cache immediately and replaces it after background refresh", async () => {
+    await get("/api/search?q=TPS62160DSGR")
+    await env.DB.prepare("UPDATE search_cache SET expires_at=?")
+      .bind(Date.now() - 1)
+      .run()
+    fetcher.mockImplementation((url: string | URL) =>
+      Promise.resolve(
+        String(url).includes("oauth")
+          ? respond(url)
+          : Response.json({ ...catalog.catalog[0], quantity: 999 }),
+      ),
+    )
+    const stale = await get("/api/search?q=TPS62160DSGR")
+    expect(stale.headers.get("x-cache")).toBe("STALE")
+    expect(((await stale.json()) as any).components[0].stock).toBe(1200)
+    await drain()
+    expect((await body("/api/search?q=TPS62160DSGR")).components[0].stock).toBe(
+      999,
+    )
   })
-  it("supports Accept and json=true, package index and readiness", async () => {
+  it("retains stale results when refresh is throttled", async () => {
+    await get("/api/search?q=TPS62160DSGR")
+    await env.DB.prepare("UPDATE search_cache SET expires_at=?")
+      .bind(Date.now() - 1)
+      .run()
+    fetcher.mockResolvedValue(new Response("account details", { status: 429 }))
+    expect(
+      (await get("/api/search?q=TPS62160DSGR")).headers.get("x-cache"),
+    ).toBe("STALE")
+    await drain()
     expect(
       (
-        (await (
-          await get("/components/list?q=amplifier&json=true")
-        ).json()) as any
-      ).components,
-    ).toHaveLength(1)
+        await env.DB.prepare(
+          "SELECT response_json FROM search_cache",
+        ).first<any>()
+      ).response_json,
+    ).toContain("1200")
+  })
+  it("forwards Retry-After on a cold throttled response without caching the error", async () => {
+    fetcher.mockImplementation((url: string | URL) =>
+      Promise.resolve(
+        String(url).includes("oauth")
+          ? respond(url)
+          : new Response("private body", {
+              status: 429,
+              headers: { "retry-after": "60" },
+            }),
+      ),
+    )
+    const r = await get("/api/search?q=TPS62160DSGR")
+    expect(r.status).toBe(503)
+    expect(r.headers.get("retry-after")).toBe("60")
+    expect(r.headers.get("cache-control")).toBe("no-store")
+    expect(await r.text()).not.toContain("private body")
+    expect(
+      await env.DB.prepare("SELECT * FROM search_cache").first(),
+    ).toBeNull()
+  })
+  it("preserves category keys, discovered filters and JSON negotiation", async () => {
+    const b = await body("/buck_converters/list.json?package=WSON")
+    expect(b.buck_converters[0].mfr).toBe("TPS62160DSGR")
+    expect(b.meta.filter_options.ParametricFilters.length).toBeGreaterThan(1)
+    expect(
+      (await get("/buck_converters/list?json=true")).headers.get(
+        "content-type",
+      ),
+    ).toContain("application/json")
     expect(
       (
-        await get("/components/list?q=buck", {
+        await get("/buck_converters/list", {
           headers: { accept: "application/json" },
         })
       ).headers.get("content-type"),
     ).toContain("application/json")
-    expect(
-      ((await (await get("/footprint_index/list.json")).json()) as any)
-        .footprints,
-    ).toHaveLength(3)
-    expect(((await (await get("/api/status")).json()) as any).part_count).toBe(
-      5,
-    )
   })
-  it("escapes search HTML and keeps query filters in pagination links", async () => {
-    const html = await (
-      await get("/buck_converters/list?package=WSON&limit=1")
-    ).text()
-    expect(html).toContain("package=WSON&amp;limit=1&amp;offset=1")
-    expect(html).toContain("TSX conversion unavailable")
+  it("learns out-of-stock updates even when filtered out of search results", async () => {
+    await get("/api/search?q=TPS62160DSGR")
+    await env.DB.prepare(
+      "UPDATE search_cache SET expires_at=0, stale_until=0",
+    ).run()
+    fetcher.mockResolvedValue(
+      Response.json({ ...catalog.catalog[0], quantity: 0 }),
+    )
+    expect((await body("/api/search?q=TPS62160DSGR")).components).toHaveLength(
+      0,
+    )
+    expect(
+      (await body("/api/index/search?q=TPS62160DSGR")).components,
+    ).toHaveLength(0)
+  })
+  it("keeps next-page links when all products on a family page are filtered out", async () => {
+    fetcher.mockImplementation((url: string | URL) => {
+      const u = new URL(url)
+      return Promise.resolve(
+        u.pathname === "/v1/products"
+          ? Response.json({
+              Content: [{ Identifier: "TPS62160DSGR" }],
+              TotalElements: 2,
+            })
+          : u.pathname.includes("oauth")
+            ? respond(url)
+            : Response.json({ ...catalog.catalog[0], quantity: 0 }),
+      )
+    })
+    const b = await body("/buck_converters/list.json?limit=1")
+    expect(b.meta).toMatchObject({
+      total: 0,
+      upstream_total: 2,
+      next_offset: 1,
+    })
+    const html = await (await get("/buck_converters/list?limit=1")).text()
+    expect(html).toContain("offset=1")
+    expect(html).toContain("Next")
+  })
+  it("validates input and HTTP methods before upstream access", async () => {
+    for (const path of [
+      "/api/search",
+      "/api/search?q=x&limit=NaN",
+      "/api/index/search?q=x&limit=NaN",
+    ])
+      expect((await get(path)).status).toBe(400)
+    expect((await get("/api/search", { method: "OPTIONS" })).status).toBe(204)
+    expect((await get("/api/search", { method: "POST" })).status).toBe(405)
+    expect((await get("/api/nope")).status).toBe(404)
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+  it("escapes HTML and renders the common table without an import workflow", async () => {
+    const html = await (await get("/components/list?q=TPS62160DSGR")).text()
+    expect(html).toContain("Unit Price @ Qty")
+    expect(html).toContain("Texas Instruments")
+    expect(html).not.toMatch(/CAD|TSX|jlcsearch|EasyEDA/)
     const escaped = await (
-      await get("/components/list?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E")
+      await get(
+        "/components/list?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E&mode=family",
+      )
     ).text()
     expect(escaped).not.toContain("<script>alert(1)</script>")
     expect(escaped).toContain("&lt;script&gt;")
   })
-  it("marks old snapshots stale and refuses excessively old prices", async () => {
-    await env.DB.prepare("UPDATE catalog_snapshots SET imported_at=?")
-      .bind(Date.now() - 86400000)
-      .run()
-    const stale = await get("/api/search?q=buck")
-    expect(stale.headers.get("x-cache")).toBe("STALE")
-    await env.DB.prepare("UPDATE catalog_snapshots SET imported_at=?")
-      .bind(0)
-      .run()
-    expect((await get("/api/search?q=buck")).status).toBe(503)
-  })
-  it("activates complete snapshots and removes vanished parts from results", async () => {
-    const next = { catalog: [catalog.catalog[2]] }
-    await env.DB.exec(
-      createSnapshotSql(
-        normalizeCatalog(next),
-        "snapshot-2",
-        Date.now(),
-        "USD",
+  it("cron refreshes popular expired queries and stops on reported quota", async () => {
+    await get("/api/search?q=TPS62160DSGR")
+    await get("/api/search?q=TPS62160DSGT")
+    await env.DB.prepare("UPDATE search_cache SET expires_at=0").run()
+    fetcher.mockImplementation((url: string | URL) =>
+      Promise.resolve(
+        Response.json(
+          catalog.catalog.find((p) => String(url).includes(p.tiPartNumber))!,
+          { headers: { "x-ratelimit-remaining": "10" } },
+        ),
       ),
     )
+    const previous = fetcher.mock.calls.length
+    const ctx = createExecutionContext()
+    await worker.scheduled({} as ScheduledController, runtime, ctx)
+    await waitOnExecutionContext(ctx)
+    expect(fetcher.mock.calls.length - previous).toBe(1)
     expect(
-      ((await (await get("/api/search?q=TPS62160")).json()) as any).total,
-    ).toBe(0)
+      (
+        await env.DB.prepare(
+          "SELECT count(*) as n FROM search_cache WHERE expires_at=0",
+        ).first<any>()
+      ).n,
+    ).toBe(1)
   })
-  it("leaves the old snapshot active when staging an incomplete replacement", async () => {
+  it("rejects expired cache and excludes excessively old indexed stock", async () => {
+    await get("/api/search?q=TPS62160DSGR")
     await env.DB.prepare(
-      "INSERT INTO catalog_snapshots VALUES ('incomplete',?,5,'USD')",
-    )
-      .bind(Date.now())
-      .run()
-    await env.DB.exec(
-      "UPDATE catalog_state SET active_snapshot='incomplete' WHERE (SELECT COUNT(*) FROM parts WHERE snapshot_id='incomplete')=5;",
-    )
-    expect(
-      ((await (await get("/api/search?q=buck")).json()) as any).total,
-    ).toBe(2)
+      "UPDATE search_cache SET expires_at=0, stale_until=0",
+    ).run()
+    await env.DB.prepare("UPDATE parts SET updated_at=0").run()
+    fetcher.mockResolvedValue(new Response(null, { status: 503 }))
+    expect((await get("/api/search?q=TPS62160DSGR")).status).toBe(503)
+    expect((await body("/api/index/search?q=buck")).components).toHaveLength(0)
   })
-  it("allows only one catalog attempt per four hours, across concurrent jobs", async () => {
-    const now = Date.now()
+  it("bounds scheduled family refresh work within the invocation budget", async () => {
+    await get("/api/search?q=Buck&mode=family")
+    await get("/api/search?q=Boost&mode=family")
+    await get("/api/search?q=Linear&mode=family")
+    await env.DB.prepare("UPDATE search_cache SET expires_at=0").run()
+    const ctx = createExecutionContext()
+    await worker.scheduled({} as ScheduledController, runtime, ctx)
+    await waitOnExecutionContext(ctx)
     expect(
-      (await env.DB.prepare(claimCatalogRequestSql(now)).all()).results,
-    ).toHaveLength(1)
-    expect(
-      (await env.DB.prepare(claimCatalogRequestSql(now + 1)).all()).results,
-    ).toHaveLength(0)
-    expect(
-      (await env.DB.prepare(claimCatalogRequestSql(now + 14400000)).all())
-        .results,
-    ).toHaveLength(1)
+      (
+        await env.DB.prepare(
+          "SELECT count(*) as n FROM search_cache WHERE expires_at=0",
+        ).first<any>()
+      ).n,
+    ).toBe(1)
   })
 })

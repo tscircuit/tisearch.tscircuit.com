@@ -1,36 +1,72 @@
-CREATE TABLE catalog_snapshots (
-  id TEXT PRIMARY KEY,
-  imported_at INTEGER NOT NULL,
-  part_count INTEGER NOT NULL CHECK (part_count > 0),
-  currency TEXT NOT NULL
+CREATE TABLE IF NOT EXISTS search_cache (
+  cache_key TEXT PRIMARY KEY,
+  query TEXT NOT NULL,
+  request_json TEXT NOT NULL,
+  response_json TEXT NOT NULL,
+  response_key TEXT NOT NULL,
+  source_kind TEXT NOT NULL DEFAULT 'search',
+  created_at INTEGER NOT NULL,
+  refreshed_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL,
+  stale_until INTEGER NOT NULL,
+  last_accessed_at INTEGER NOT NULL,
+  access_count INTEGER NOT NULL DEFAULT 1,
+  api_rate_limit_remaining INTEGER
 );
-CREATE TABLE catalog_state (
-  singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
-  active_snapshot TEXT REFERENCES catalog_snapshots(id),
-  next_request_at INTEGER NOT NULL DEFAULT 0
-);
-INSERT INTO catalog_state(singleton) VALUES (1);
 
-CREATE TABLE parts (
-  id INTEGER PRIMARY KEY,
-  snapshot_id TEXT NOT NULL REFERENCES catalog_snapshots(id) ON DELETE CASCADE,
-  ti_part_number TEXT NOT NULL COLLATE NOCASE,
-  generic_part_number TEXT NOT NULL COLLATE NOCASE,
-  package TEXT NOT NULL,
-  pin_count INTEGER,
-  stock INTEGER NOT NULL,
-  lifecycle TEXT NOT NULL,
-  categories_json TEXT NOT NULL,
-  data_json TEXT NOT NULL,
+CREATE INDEX IF NOT EXISTS search_cache_refresh_idx
+  ON search_cache(expires_at, access_count DESC, last_accessed_at DESC);
+
+CREATE TABLE IF NOT EXISTS parts (
+  ti_product_number TEXT PRIMARY KEY,
+  manufacturer_part_number TEXT NOT NULL,
+  manufacturer TEXT NOT NULL,
+  description TEXT NOT NULL,
+  detailed_description TEXT,
+  package TEXT,
+  category_id INTEGER,
+  category TEXT,
+  subcategory TEXT,
+  stock INTEGER NOT NULL DEFAULT 0,
+  unit_price REAL,
+  product_url TEXT,
+  datasheet_url TEXT,
+  photo_url TEXT,
+  normally_stocking INTEGER NOT NULL DEFAULT 0,
+  discontinued INTEGER NOT NULL DEFAULT 0,
+  marketplace INTEGER NOT NULL DEFAULT 0,
+  parameters_json TEXT NOT NULL DEFAULT '{}',
   search_text TEXT NOT NULL,
-  UNIQUE(snapshot_id, ti_part_number)
+  raw_json TEXT NOT NULL,
+  first_seen_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
 );
-CREATE INDEX parts_stock ON parts(snapshot_id, stock DESC, ti_part_number);
-CREATE INDEX parts_package ON parts(snapshot_id, package);
-CREATE VIRTUAL TABLE parts_fts USING fts5(search_text, content='parts', content_rowid='id');
-CREATE TRIGGER parts_insert AFTER INSERT ON parts BEGIN
-  INSERT INTO parts_fts(rowid, search_text) VALUES (new.id, new.search_text);
+
+CREATE INDEX IF NOT EXISTS parts_stock_idx ON parts(stock DESC);
+CREATE INDEX IF NOT EXISTS parts_package_idx ON parts(package, stock DESC);
+CREATE INDEX IF NOT EXISTS parts_category_idx
+  ON parts(category, subcategory, stock DESC);
+CREATE INDEX IF NOT EXISTS parts_mpn_idx ON parts(manufacturer_part_number);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS parts_fts USING fts5(
+  ti_product_number UNINDEXED,
+  search_text,
+  content='parts',
+  content_rowid='rowid'
+);
+
+CREATE TRIGGER IF NOT EXISTS parts_ai AFTER INSERT ON parts BEGIN
+  INSERT INTO parts_fts(rowid, ti_product_number, search_text)
+  VALUES (new.rowid, new.ti_product_number, new.search_text);
 END;
-CREATE TRIGGER parts_delete AFTER DELETE ON parts BEGIN
-  INSERT INTO parts_fts(parts_fts, rowid, search_text) VALUES ('delete', old.id, old.search_text);
+CREATE TRIGGER IF NOT EXISTS parts_ad AFTER DELETE ON parts BEGIN
+  INSERT INTO parts_fts(parts_fts, rowid, ti_product_number, search_text)
+  VALUES ('delete', old.rowid, old.ti_product_number, old.search_text);
+END;
+
+CREATE TRIGGER IF NOT EXISTS parts_au AFTER UPDATE ON parts BEGIN
+  INSERT INTO parts_fts(parts_fts, rowid, ti_product_number, search_text)
+  VALUES ('delete', old.rowid, old.ti_product_number, old.search_text);
+  INSERT INTO parts_fts(rowid, ti_product_number, search_text)
+  VALUES (new.rowid, new.ti_product_number, new.search_text);
 END;

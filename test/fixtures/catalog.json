@@ -18,7 +18,7 @@
       ],
       "minimumOrderQuantity": 1,
       "lifeCycle": "ACTIVE",
-      "buyNowURL": "https://www.ti.com/product/TPS62160/part-details/TPS62160DSGR"
+      "buyNowUrl": "https://www.ti.com/product/TPS62160/part-details/TPS62160DSGR"
     },
     {
       "tiPartNumber": "TPS62160DSGT",

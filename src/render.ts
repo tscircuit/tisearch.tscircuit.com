@@ -1,7 +1,11 @@
-import { CATEGORY_DEFINITIONS } from "./categories"
-import type { NormalizedPart, SearchPayload } from "./types"
+import {
+  CATEGORY_DEFINITIONS,
+  COMMON_FILTERS,
+  type CategoryDefinition,
+} from "./categories"
+import type { TiFilterOptions, NormalizedPart, SearchPayload } from "./types"
 
-export const escapeHtml = (value: unknown): string =>
+const escapeHtml = (value: unknown): string =>
   String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -9,78 +13,282 @@ export const escapeHtml = (value: unknown): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;")
 
-// Relative links avoid reflecting an untrusted Host header into the page.
-const jsonUrl = (url: URL): string =>
-  `${url.pathname.replace(/\.json$/, "")}.json${url.search}`
-const shell = (
-  title: string,
+const titleCase = (value: string): string =>
+  value
+    .split(/[_/]+/)
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" ")
+
+const renderBreadcrumbs = (pathname: string): string =>
+  pathname
+    .split("/")
+    .filter(Boolean)
+    .map(
+      (part, index, parts) =>
+        `<span><span class="px-0.5 text-gray-500">/</span>${
+          index === parts.length - 1
+            ? `<a href="/${parts.slice(0, index + 1).join("/")}">${escapeHtml(part)}</a>`
+            : `<span class="px-0.5 text-gray-500">${escapeHtml(part)}</span>`
+        }</span>`,
+    )
+    .join("")
+
+const jsonUrl = (requestUrl: string, pathname: string): string => {
+  const url = new URL(requestUrl)
+  if (!url.pathname.endsWith(".json")) url.pathname = `${pathname}.json`
+  return url.pathname + url.search
+}
+
+const renderShell = (
+  pathname: string,
   body: string,
-  url?: URL,
+  title = "TI Parts Search",
+  requestUrl?: string,
 ): string => `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(title)} - TI Parts Search</title>
-<meta name="description" content="Search Texas Instruments parts, packages, inventory, and prices with tscircuit.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%231d4ed8'/%3E%3Cpath d='M7 9h12v4h-4v11h-4V13H7zm15 0h4v15h-4z' fill='white'/%3E%3C/svg%3E">
-<style>
-*{box-sizing:border-box}body{margin:0;font:13px Arial,sans-serif;color:#171717}a{color:#1d4ed8;text-decoration:underline}a:visited{color:#6b21a8}header{border-bottom:1px solid #d1d5db;padding:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}header nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}h1{font-size:20px;margin:12px 0}h2{font-size:18px}main{padding:8px;min-height:85vh}input,select{font:inherit;border:1px solid #9ca3af;border-radius:3px;padding:5px;max-width:100%}button{font:inherit;background:#2563eb;color:white;border:0;border-radius:3px;padding:6px 12px;cursor:pointer}.search{display:flex;gap:5px}.search input{width:260px}.categories{display:flex;flex-wrap:wrap;gap:16px;margin:8px 0}.categories a{border:1px solid #d1d5db;border-radius:4px;padding:12px;width:150px;text-align:center}.filters{display:flex;flex-wrap:wrap;align-items:end;gap:12px;border:1px solid #d1d5db;border-radius:4px;padding:10px;margin:8px 0}.filters label{display:flex;flex-direction:column;gap:4px}.filters input{width:140px}.table-wrap{overflow:auto}table{border-collapse:collapse;font-size:12px}th,td{border:1px solid #d1d5db;padding:5px;text-align:left}th{background:#f9fafb}td.number{text-align:right;white-space:nowrap}td.part{white-space:nowrap}.muted{color:#525252}.stale{color:#92400e}.paging{display:flex;gap:16px;margin:14px 0}footer{text-align:center;border-top:1px solid #d1d5db;padding:12px;color:#525252;font-size:12px}code{font-size:12px}summary{cursor:pointer}@media(max-width:600px){header nav{width:100%}.search{flex:1}.search input{width:100%}.filters label{flex:1}.categories a{width:calc(50% - 8px)}}
-</style></head><body><header><div>TI In-Stock Parts Engine (Unofficial) <a href="/">home</a></div><nav>
-<form action="/components/list" method="GET" class="search"><input aria-label="Search TI parts" name="search" placeholder="Search Description or TI Part Number"><button>Search</button></form>
-<a href="https://github.com/tscircuit/tisearch.tscircuit.com">GitHub</a>${url ? `<a href="${escapeHtml(jsonUrl(url))}">json</a>` : ""}<a href="https://tscircuit.com">tscircuit</a></nav></header>
-<main>${body}</main><footer>© ${new Date().getFullYear()} tscircuit. An independent tscircuit service. Texas Instruments product data and links belong to TI. <a href="https://tscircuit.com/legal/terms-of-service.html">Terms of service</a></footer></body></html>`
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(title)}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style type="text/tailwindcss">
+a { @apply underline text-blue-600 hover:text-blue-800 visited:text-purple-600 m-1 }
+h2 { @apply text-xl font-bold my-2 }
+input, select { @apply border border-gray-300 rounded p-1 ml-0.5 }
+form { @apply inline-flex max-w-full flex-col gap-2 border border-gray-300 rounded p-2 m-2 text-xs }
+button { @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-3 rounded }
+.wrapper { @apply min-h-screen flex flex-col }
+.content { @apply flex-grow min-w-0 }
+.footer { @apply text-center py-2 text-xs text-gray-600 border-t border-gray-300 mt-4 }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="border-b border-gray-300 py-1 flex flex-wrap justify-between items-center gap-2">
+        <div>
+          <span class="px-1 pr-2">TI In-Stock Parts Engine (Unofficial)</span>
+          <span><a href="/">home</a></span>
+          ${renderBreadcrumbs(pathname)}
+        </div>
+        <div class="flex flex-row flex-wrap items-center gap-2">
+          <form action="/components/list" method="GET" class="flex flex-row border-none py-0 my-0">
+            <input type="text" name="search" placeholder="Search TI Part Number or Family" class="border m-0 mr-2" autocomplete="on" />
+            <button type="submit" class="border px-3 py-1 m-0">Search</button>
+          </form>
+          <a href="https://github.com/tscircuit/tisearch.tscircuit.com">GitHub</a>
+          ${requestUrl && pathname.includes("/list") ? `<a href="${escapeHtml(jsonUrl(requestUrl, pathname))}">json</a>` : ""}
+          <a href="https://tscircuit.com">tscircuit</a>
+        </div>
+      </div>
+      <main class="flex flex-col text-xs p-1 content">${body}</main>
+      <footer class="footer">© ${new Date().getFullYear()} tscircuit. All rights reserved. By using this site, you agree to the<a href="https://tscircuit.com/legal/terms-of-service.html">terms of service</a>. This site is from tscircuit, not TI; we are customers helping other customers.</footer>
+    </div>
+  </body>
+</html>`
 
-export const renderHomePage = (): string =>
-  shell(
-    "TI",
-    `<div class="categories">${[{ path: "/categories/list", label: "Categories" }, { path: "/footprint_index/list", label: "Package Index" }, ...CATEGORY_DEFINITIONS].map((c) => `<a href="${c.path}">${escapeHtml(c.label)}</a>`).join("")}</div><p class="muted">Search TI orderable part numbers and descriptions. Inventory and prices reflect the latest catalog refresh; confirm availability on TI.com.</p>`,
+export const renderHomePage = (): string => {
+  const links = [
+    { path: "/categories/list", label: "Categories" },
+    { path: "/footprint_index/list", label: "Package Index" },
+    ...CATEGORY_DEFINITIONS,
+  ]
+    .map(
+      ({ path, label }) =>
+        `<a href="${escapeHtml(path)}">${escapeHtml(label)}</a>`,
+    )
+    .join("")
+
+  return renderShell(
+    "/",
+    `<div><div class="flex flex-wrap gap-4 *:text-lg *:border *:rounded *:p-2 *:border-gray-300 *:w-32 *:text-sm *:text-center">${links}</div></div>`,
   )
+}
 
-const renderPart = (part: NormalizedPart): string => `<tr>
-<td class="part"><a href="${escapeHtml(part.product_url)}">${escapeHtml(part.ti_part_number)}</a></td>
-<td>${escapeHtml(part.generic_part_number)}</td><td>${escapeHtml(part.package)}</td><td class="number">${part.pin_count ?? ""}</td>
-<td>${escapeHtml(part.description)}${part.datasheet_url ? ` <a href="${escapeHtml(part.datasheet_url)}">datasheet</a>` : ""}</td>
-<td class="number">${part.stock.toLocaleString("en-US")}</td><td class="number">${part.price === null ? "—" : `${escapeHtml(part.currency)} ${part.price.toLocaleString("en-US", { maximumFractionDigits: 6 })} @ ${part.price_quantity}`}<details><summary>Breaks</summary>${part.price_breaks.map((b) => `${b.quantity}: ${escapeHtml(part.currency)} ${b.price}`).join("<br>")}</details></td>
-<td>${escapeHtml(part.lifecycle)}</td><td><span class="muted">Not supplied by TI API</span><br>TSX conversion unavailable</td></tr>`
+const renderStaticFilters = (
+  category: CategoryDefinition | undefined,
+  url: URL,
+): string =>
+  (category?.filters ?? COMMON_FILTERS)
+    .map(
+      (filter) => `<div>
+        <label>${escapeHtml(filter.label)}:</label>
+        <input name="${escapeHtml(filter.name)}" value="${escapeHtml(url.searchParams.get(filter.name) ?? "")}" placeholder="${escapeHtml(filter.placeholder ?? "")}" autocomplete="on" />
+      </div>`,
+    )
+    .join("")
+
+const renderManufacturerFilter = (
+  options: TiFilterOptions,
+  url: URL,
+): string => {
+  const manufacturers = (options.Manufacturers ?? []).slice(0, 100)
+  if (manufacturers.length === 0) return ""
+  const selected = url.searchParams.get("manufacturer") ?? ""
+  return `<div><label>Manufacturer:</label><select name="manufacturer">
+    <option value="">All</option>
+    ${manufacturers
+      .map(
+        (manufacturer) =>
+          `<option value="${escapeHtml(manufacturer.Id)}"${String(manufacturer.Id) === selected ? " selected" : ""}>${escapeHtml(manufacturer.Value ?? manufacturer.Id)} (${Number(manufacturer.ProductCount ?? 0).toLocaleString("en-US")})</option>`,
+      )
+      .join("")}
+  </select></div>`
+}
+
+const renderParametricFilters = (options: TiFilterOptions, url: URL): string =>
+  (options.ParametricFilters ?? [])
+    .filter(
+      (filter) =>
+        filter.Category?.Id &&
+        filter.ParameterId &&
+        filter.ParameterName &&
+        (filter.FilterValues?.length ?? 0) > 0,
+    )
+    .slice(0, 12)
+    .map((filter) => {
+      const name = `param_${filter.Category?.Id}_${filter.ParameterId}`
+      const selected = url.searchParams.get(name) ?? ""
+      return `<div><label>${escapeHtml(filter.ParameterName)}:</label><select name="${escapeHtml(name)}">
+        <option value="">All</option>
+        ${(filter.FilterValues ?? [])
+          .slice(0, 100)
+          .map(
+            (value) =>
+              `<option value="${escapeHtml(value.ValueId)}"${value.ValueId === selected ? " selected" : ""}>${escapeHtml(value.ValueName)} (${Number(value.ProductCount ?? 0).toLocaleString("en-US")})</option>`,
+          )
+          .join("")}
+      </select></div>`
+    })
+    .join("")
+
+const renderFilters = (
+  category: CategoryDefinition | undefined,
+  payload: SearchPayload,
+  url: URL,
+): string => {
+  const queryField = `<div><label>${category ? "Family prefix" : "Search"}:</label><input name="q" value="${escapeHtml(payload.query)}" /></div>
+    <div><label>Search by:</label><select name="mode"><option value="">Auto</option><option value="part"${url.searchParams.get("mode") === "part" ? " selected" : ""}>Part number</option><option value="family"${url.searchParams.get("mode") === "family" || (category && !url.searchParams.get("mode")) ? " selected" : ""}>Family prefix</option></select></div>
+    <div><label>Inventory:</label><select name="in_stock"><option value="true">In stock</option><option value="false"${url.searchParams.get("in_stock") === "false" ? " selected" : ""}>All store listings</option></select></div><input type="hidden" name="limit" value="${payload.limit}">`
+  const filters = [
+    queryField,
+    renderStaticFilters(category, url),
+    renderManufacturerFilter(payload.filter_options, url),
+    renderParametricFilters(payload.filter_options, url),
+  ].join("")
+
+  return `<form method="GET" class="flex flex-row flex-wrap gap-4">${filters}<button type="submit">Filter</button></form>`
+}
+
+const formatPrice = (part: NormalizedPart): string =>
+  part.price === null
+    ? "—"
+    : `${part.currency} ${part.price.toLocaleString("en-US", { maximumFractionDigits: 6 })} @ ${part.price_quantity}`
+
+const renderParameters = (parameters: Record<string, string>): string => {
+  const entries = Object.entries(parameters)
+  if (entries.length === 0) return ""
+  return `<details><summary>${entries.length} params</summary><dl class="mt-1">${entries
+    .map(
+      ([name, value]) =>
+        `<div><dt class="font-semibold inline">${escapeHtml(name)}:</dt> <dd class="inline">${escapeHtml(value)}</dd></div>`,
+    )
+    .join("")}</dl></details>`
+}
+
+const renderPartsTable = (parts: NormalizedPart[]): string => {
+  if (parts.length === 0) return "<p>No in-stock results found.</p>"
+  const rows = parts
+    .map(
+      (part) => `<tr>
+        <td class="border border-gray-300 p-1"><a href="${escapeHtml(part.product_url)}">${escapeHtml(part.ti_product_number)}</a></td>
+        <td class="border border-gray-300 p-1">${escapeHtml(part.mfr)}</td>
+        <td class="border border-gray-300 p-1">${escapeHtml(part.manufacturer)}</td>
+        <td class="border border-gray-300 p-1">${escapeHtml(part.package)}</td>
+        <td class="border border-gray-300 p-1">${escapeHtml(part.description)}${part.datasheet_url ? ` <a href="${escapeHtml(part.datasheet_url)}">datasheet</a>` : ""}</td>
+        <td class="border border-gray-300 p-1 text-right">${part.stock.toLocaleString("en-US")}</td>
+        <td class="border border-gray-300 p-1 text-right">${escapeHtml(formatPrice(part))}</td>
+        <td class="border border-gray-300 p-1">${renderParameters(part.parameters)}</td>
+      </tr>`,
+    )
+    .join("")
+
+  return `<table class="border border-gray-300 text-xs border-collapse p-1">
+    <thead><tr>
+      ${[
+        "TI PN",
+        "MFR",
+        "Manufacturer",
+        "Package",
+        "Description",
+        "Stock",
+        "Unit Price @ Qty",
+        "Parameters",
+      ]
+        .map(
+          (column) => `<th class="p-1 border border-gray-300">${column}</th>`,
+        )
+        .join("")}
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`
+}
 
 export const renderSearchPage = (
   pathname: string,
-  title: string,
+  label: string,
+  category: CategoryDefinition | undefined,
   payload: SearchPayload,
-  url: URL,
-  category: boolean,
+  requestUrl: string,
 ): string => {
-  const value = (key: string) => escapeHtml(url.searchParams.get(key) ?? "")
-  const pageLink = (offset: number, text: string) => {
+  const url = new URL(requestUrl)
+  const freshness = payload.stale
+    ? `<span class="text-amber-700">Serving stale cache while TI refreshes.</span>`
+    : payload.cached
+      ? `<span class="text-gray-600">Cached until ${escapeHtml(payload.cache_expires_at)}.</span>`
+      : `<span class="text-gray-600">Fresh from TI; cached until ${escapeHtml(payload.cache_expires_at)}.</span>`
+
+  const pageLink = (offset: number, label: string) => {
     const next = new URL(url)
     next.searchParams.set("offset", String(offset))
-    return `<a href="${escapeHtml(next.pathname + next.search)}">${text}</a>`
+    next.searchParams.set("limit", String(payload.limit))
+    return `<a href="${escapeHtml(next.pathname + next.search)}">${label}</a>`
   }
-  return shell(
-    title,
-    `<h1>${escapeHtml(title)}</h1>${category ? '<p class="muted">Grouped by product description. Check the datasheet for electrical specifications.</p>' : ""}
-<form class="filters" action="${pathname}" method="GET">
-<label>Search<input name="q" value="${escapeHtml(payload.query)}"></label><label>Package<input name="package" value="${value("package")}" placeholder="WSON"></label>
-<label>Pins<input type="number" min="1" max="10000" name="pin_count" value="${escapeHtml(url.searchParams.get("pin_count") ?? url.searchParams.get("num_pins") ?? "")}"></label>
-<label>Lifecycle<input name="lifecycle" value="${value("lifecycle")}" placeholder="ACTIVE"></label><label>Base part<input name="gpn" value="${value("gpn")}"></label>
-<label>Inventory<select name="in_stock"><option value="true">In stock</option><option value="false"${url.searchParams.get("in_stock") === "false" ? " selected" : ""}>All parts</option></select></label><input type="hidden" name="limit" value="${payload.limit}"><button>Filter</button></form>
-<p class="${payload.stale ? "stale" : "muted"}">${payload.stale ? "Catalog refresh overdue. " : ""}Catalog updated ${escapeHtml(payload.catalog_updated_at)}. ${payload.total.toLocaleString("en-US")} matching parts.</p>
-${payload.components.length ? `<div class="table-wrap"><table><thead><tr>${["TI PN", "Base Part", "Package", "Pins", "Description", "Stock", "Unit Price @ Qty", "Lifecycle", "CAD / TSX"].map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${payload.components.map(renderPart).join("")}</tbody></table></div>` : "<p>No matching parts found. Try a base part number or fewer filters.</p>"}
-<div class="paging">${payload.offset > 0 ? pageLink(Math.max(0, payload.offset - payload.limit), "Previous") : ""}${payload.offset + payload.limit < payload.total ? pageLink(payload.offset + payload.limit, "Next") : ""}</div>`,
-    url,
+  const paging = `<div class="my-2">${payload.offset > 0 ? pageLink(Math.max(0, payload.offset - payload.limit), "Previous") : ""}${payload.next_offset !== null ? pageLink(payload.next_offset, "Next") : ""}</div>`
+  return renderShell(
+    pathname,
+    `<div><h2>${escapeHtml(label)}</h2>${renderFilters(category, payload, url)}<div class="my-1">${freshness} ${payload.total.toLocaleString("en-US")} matching products on this page.</div><p class="text-gray-600 my-1">Search by exact or base part number, or the beginning of a TI product family name. Stock and filters apply to each page.</p><div class="overflow-x-auto">${renderPartsTable(payload.components)}</div>${paging}</div>`,
+    `${label} - TI Parts Search`,
+    requestUrl,
   )
 }
 
 export const renderSimpleTablePage = (
-  _path: string,
-  title: string,
-  rows: Record<string, unknown>[],
-  url: URL,
+  pathname: string,
+  label: string,
+  rows: Array<Record<string, unknown>>,
+  requestUrl: string,
 ): string => {
   const columns = Object.keys(rows[0] ?? {})
-  return shell(
-    title,
-    `<h1>${escapeHtml(title)}</h1>${rows.length ? `<div class="table-wrap"><table><thead><tr>${columns.map((c) => `<th>${escapeHtml(c)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${columns.map((c) => `<td>${c === "path" ? `<a href="${escapeHtml(row[c])}">${escapeHtml(row[c])}</a>` : escapeHtml(row[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` : "<p>No packages with stock in the current catalog.</p>"}`,
-    url,
+  const table =
+    rows.length === 0
+      ? "<p>The on-demand index is empty. Search for parts to populate it.</p>"
+      : `<table class="border border-gray-300 text-xs border-collapse p-1"><thead><tr>${columns.map((column) => `<th class="p-1 border border-gray-300">${escapeHtml(titleCase(column))}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${columns.map((column) => `<td class="border border-gray-300 p-1">${escapeHtml(row[column])}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+  return renderShell(
+    pathname,
+    `<div><h2>${escapeHtml(label)}</h2>${table}</div>`,
+    `${label} - TI Parts Search`,
+    requestUrl,
   )
 }
-export const renderErrorPage = (status: number, message: string): string =>
-  shell(`${status}`, `<h1>${status}</h1><p>${escapeHtml(message)}</p>`)
+
+export const renderErrorPage = (
+  pathname: string,
+  status: number,
+  message: string,
+): string =>
+  renderShell(
+    pathname,
+    `<div><h2>${status}</h2><p>${escapeHtml(message)}</p></div>`,
+    `${status} - TI Parts Search`,
+  )
