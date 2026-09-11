@@ -9,7 +9,10 @@ describe("TI Store V2 normalization", () => {
     expect(part.generic_part_number).toBe("TPS62160")
     expect(part.price_quantity).toBe(250)
     expect(part.categories).toContain("buck_converters")
-    expect(part.cad.status).toBe("lookup_required")
+    expect(part.cad).toEqual({
+      status: "not_provided_by_ti_api",
+      source: "ti_api",
+    })
   })
   it("does not turn absent prices or another currency into a free USD part", () => {
     expect(normalizeProduct(catalog.catalog[2]).price).toBeNull()
@@ -19,7 +22,7 @@ describe("TI Store V2 normalization", () => {
     const part = normalizeProduct(catalog.catalog[3])
     expect(part.ti_part_number).toBe("LP2982AIM5-3.3/NOPB")
     expect(part.product_url).toContain("%2FNOPB")
-    expect(part.cad.lookup_url).toContain("%2FNOPB")
+    expect(part.cad).not.toHaveProperty("lookup_url")
   })
   it("retains a valid TI link and excludes executable/off-domain links", () => {
     const raw = catalog.catalog[0]

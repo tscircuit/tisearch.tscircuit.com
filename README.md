@@ -45,7 +45,9 @@ This is an illustrative empty response, not live inventory. Each component has
 `ti_part_number`, `supplier_part_number`, `mfr` (the exact orderable part number),
 `generic_part_number`, `manufacturer`, `description`, `package`, `pin_count`,
 `stock`, `price`, `price_quantity`, `currency`, `price_breaks`, `lifecycle`,
-`product_url`, `datasheet_url`, order quantities, and `cad` lookup metadata.
+`product_url`, `datasheet_url`, order quantities, and `cad` capability metadata.
+`cad` is `{ "status": "not_provided_by_ti_api", "source": "ti_api" }`: TI's
+product API does not supply CAD data for TSX conversion.
 
 - `price` is the first available quantity break, and **must** be interpreted with
   `price_quantity` and `currency`; unavailable pricing is `null`, never zero.
@@ -91,7 +93,8 @@ bun run build
 
 Tests run in workerd against real D1 migrations and FTS, including snapshot
 activation, filtered counts/pagination, stale data, slash-suffixed OPNs,
-OAuth/rate-limit failures, currency handling, and exact CAD matching.
+OAuth/rate-limit failures, currency handling, exact TI API part imports, and
+refusal of unsupported TSX conversion.
 
 ## Catalog synchronization
 
@@ -116,35 +119,39 @@ The job uses `POST /v1/oauth/accesstoken` (OAuth client credentials) followed by
 - Inventory reflects the catalog's fetch time; confirm current availability and
   purchase quantities on TI.com. Product Information V1 is not used as a stock API.
 
-## TI parts to TSX
+## Importing parts directly from TI
 
-**Confirmed for TI parts with an exact supported EasyEDA/JLC CAD match.** The
-buying API itself supplies neither pad geometry nor schematic pin mappings.
-
-Install the tscircuit CLI (`npm install -g tscircuit`), then:
+The standalone importer uses **TI's API exclusively**. Configure the approved TI
+credentials in `.env`, then import an exact orderable part number:
 
 ```sh
 bun run import:part TPS62160DSGR
-# Or choose a destination directory:
-bun run import:part TPS62160DSGR --out ./my-circuit/imports
+bun run import:part 'LP2982AIM5-3.3/NOPB' --out ./my-circuit/imports
 ```
 
-The helper searches JLC by exact OPN, rejects absent/ambiguous matches, invokes
-`tsci import C... --use-exact-footprint`, checks the resulting TSX part identity,
-and writes the component plus a provenance JSON file. Existing files are not
-silently overwritten. Electrical/package suitability still needs datasheet review.
+It authenticates with TI and calls
+`GET https://transact.ti.com/v2/store/products/{encoded-tiPartNumber}` with the
+requested currency (`TI_CURRENCY`, default `USD`). It validates the exact OPN
+and writes `<encoded-OPN>.ti.json` with normalized metadata, source URL, fetch
+time, and `tsx.supported: false`. Existing files are not overwritten. There is
+no third-party search or CAD fallback and no global tscircuit installation is
+needed for metadata import.
 
-The catalog's `cad.status: "lookup_required"` is intentional: being present in
-TI's catalog does not prove that importable CAD exists. TI-only parts without a
-CAD match remain searchable. Broader coverage requires another authorized CAD
-provider or a separately verified component definition.
+**TI API-only conversion to a complete TSX component is unsupported.** The
+reviewed Store and Product Information APIs provide metadata, but neither
+supplies schematic pin mappings and complete PCB pad geometry. Package names
+and pin counts alone are insufficient. `--format tsx` fails with an explanation
+before making requests or writing files; it does not generate a placeholder
+component. TI's separate CAD downloads are not part of this API integration.
 
-See [live import verification](docs/import-verification.md) for the tested
-TPS62160DSGR conversion, compiled pad/port counts, and its datasheet pin check.
+See [TI API import feasibility and verification](docs/ti-api-import.md) for the
+reviewed endpoints, missing CAD data, and test scope. Live authenticated imports
+remain unverified until approved TI credentials are available.
 
-This repository initializes the **search service and a standalone import helper**.
-It does not modify `@tscircuit/cli`; `tsci search --ti` and `tsci import --ti`
-need a follow-up CLI PR. The existing `tsci import` path is used for conversion.
+This repository initializes the **search service and a standalone metadata
+importer**. It does not modify `@tscircuit/cli`; `tsci search --ti` and
+`tsci import --ti` are not implemented here. A complete TI-only TSX importer
+requires an additional source of verified TI CAD data and a converter.
 
 ## Deployment
 
@@ -177,4 +184,4 @@ CI runs on PRs without credentials. No production data or credentials are includ
 - [TI authentication](https://www.ti.com/developer-api/product-information-api-suite/authentication.html)
 - [TI rate limits](https://www.ti.com/developer-api/store-api/reference/response-codes-rate-limits.html)
 - [TI's CAD/Ultra Librarian workflow](https://e2e.ti.com/support/logic-group/logic/f/logic-forum/1027781/faq-where-can-i-get-a-cad-symbol-soldering-footprint-or-3d-model-for-my-device)
-- [Existing tscircuit JLC importer](https://github.com/tscircuit/cli/blob/main/lib/import/import-component-from-jlcpcb.ts)
+- [TI Product Information OpenAPI](https://www.ti.com/content/dam/developer-api/product-information-api.yaml)

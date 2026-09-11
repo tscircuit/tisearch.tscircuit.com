@@ -1,3 +1,16 @@
+import { validatePartNumber } from "./part-number"
+
+export const getTiProductUrl = (partNumber: string, currency = "USD"): URL => {
+  const pn = validatePartNumber(partNumber)
+  if (!/^[A-Z]{3}$/.test(currency)) throw new Error("Invalid currency code")
+  const url = new URL(
+    `https://transact.ti.com/v2/store/products/${encodeURIComponent(pn)}`,
+  )
+  url.searchParams.set("currency", currency)
+  url.searchParams.set("exclude-evms", "true")
+  return url
+}
+
 export class TiApiError extends Error {
   constructor(
     message: string,
@@ -71,25 +84,41 @@ export class TiClient {
 
   async getCatalog(currency = "USD"): Promise<unknown> {
     if (!/^[A-Z]{3}$/.test(currency)) throw new Error("Invalid currency code")
-    const token = await this.accessToken()
     const url = new URL("https://transact.ti.com/v2/store/products/catalog")
     url.searchParams.set("currency", currency)
     url.searchParams.set("exclude-evms", "true")
+    return this.getJson(url, "catalog", 180_000)
+  }
+
+  async getProduct(partNumber: string, currency = "USD"): Promise<unknown> {
+    return this.getJson(
+      getTiProductUrl(partNumber, currency),
+      "product",
+      30_000,
+    )
+  }
+
+  private async getJson(
+    url: URL,
+    resource: "catalog" | "product",
+    timeout: number,
+  ): Promise<unknown> {
+    const token = await this.accessToken()
     const response = await this.fetcher(url, {
       headers: { authorization: `Bearer ${token}`, accept: "application/json" },
-      signal: AbortSignal.timeout(180_000),
+      signal: AbortSignal.timeout(timeout),
       redirect: "error",
     })
     // Never automatically retry a catalog request: TI allows only one per four hours.
     // Do not log upstream bodies, which may contain account or credential details.
     if (!response.ok)
       throw new TiApiError(
-        "TI catalog request failed",
+        `TI ${resource} request failed`,
         response.status,
         response.headers.get("retry-after"),
       )
     return response.json().catch(() => {
-      throw new TiApiError("Invalid TI catalog JSON response", 502)
+      throw new TiApiError(`Invalid TI ${resource} JSON response`, 502)
     })
   }
 }

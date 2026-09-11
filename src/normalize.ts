@@ -1,4 +1,5 @@
 import { classifyPart } from "./categories"
+import { validatePartNumber } from "./part-number"
 import type { NormalizedPart, PriceBreak } from "./types"
 
 const object = (value: unknown): Record<string, unknown> => {
@@ -22,9 +23,8 @@ export const normalizeProduct = (
   currency = "USD",
 ): NormalizedPart => {
   const product = object(value)
-  const pn = text(product.tiPartNumber)
-  if (!pn || !/^[A-Za-z0-9][A-Za-z0-9./+_-]{0,99}$/.test(pn))
-    throw new Error("Invalid TI part number")
+  if (!/^[A-Z]{3}$/.test(currency)) throw new Error("Invalid currency code")
+  const pn = validatePartNumber(product.tiPartNumber)
   const stock = integer(product.quantity)
   if (stock === null) throw new Error(`Missing or invalid inventory for ${pn}`)
   const gpn = text(product.genericPartNumber)
@@ -81,9 +81,8 @@ export const normalizeProduct = (
       : "",
     categories: classifyPart(description),
     cad: {
-      status: "lookup_required",
-      source: "easyeda",
-      lookup_url: `https://jlcsearch.tscircuit.com/api/search?q=${encodeURIComponent(pn)}&limit=50`,
+      status: "not_provided_by_ti_api",
+      source: "ti_api",
     },
   }
 }

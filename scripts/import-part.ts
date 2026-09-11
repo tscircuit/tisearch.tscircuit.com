@@ -1,85 +1,52 @@
-import {
-  mkdtemp,
-  readdir,
-  readFile,
-  mkdir,
-  writeFile,
-  rm,
-} from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { mkdir, writeFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
-import { spawnSync } from "node:child_process"
-import {
-  findExactJlcPart,
-  validateImportedTsx,
-  validatePartNumber,
-} from "../src/import-match"
+import { parseArgs } from "node:util"
+import { importTiPart } from "../src/import-ti-part"
+import { TiApiError, TiClient } from "../src/ti-client"
 
 const main = async () => {
-  const args = process.argv.slice(2)
-  if (args.length !== 1 && !(args.length === 3 && args[1] === "--out"))
-    throw new Error("Usage: bun run import:part <TI-OPN> [--out imports]")
-  const pn = validatePartNumber(args[0])
-  const response = await fetch(
-    `https://jlcsearch.tscircuit.com/api/search?q=${encodeURIComponent(pn)}&limit=50`,
-    { signal: AbortSignal.timeout(30000) },
+  const { values, positionals } = parseArgs({
+    args: process.argv.slice(2),
+    allowPositionals: true,
+    options: {
+      out: { type: "string", default: "imports" },
+      format: { type: "string", default: "json" },
+    },
+  })
+  if (positionals.length !== 1)
+    throw new Error(
+      "Usage: bun run import:part <TI-OPN> [--out imports] [--format json] (metadata only; TSX unsupported)",
+    )
+  const client = new TiClient(
+    process.env.TI_CLIENT_ID ?? "",
+    process.env.TI_CLIENT_SECRET ?? "",
   )
-  if (!response.ok)
-    throw new Error(`JLC CAD lookup failed (HTTP ${response.status})`)
-  const match = findExactJlcPart(pn, await response.json())
-  const directory = await mkdtemp(join(tmpdir(), "ti-import-"))
-  try {
-    const result = spawnSync(
-      "tsci",
-      ["import", `C${match.lcsc}`, "--use-exact-footprint"],
-      {
-        cwd: directory,
-        encoding: "utf8",
-        timeout: 120000,
-      },
-    )
-    if (result.status !== 0)
-      throw new Error(
-        result.error?.message ??
-          "tsci import failed; install tscircuit and check the CAD source",
-      )
-    const files = (await readdir(join(directory, "imports"))).filter((f) =>
-      f.endsWith(".tsx"),
-    )
-    if (files.length !== 1)
-      throw new Error("Expected exactly one imported TSX component")
-    const tsx = await readFile(join(directory, "imports", files[0]), "utf8")
-    validateImportedTsx(tsx, pn, match.lcsc)
-    const target = resolve(args[2] ?? "imports")
-    await mkdir(target, { recursive: true })
-    // Exclusive writes protect an existing edited component. Provenance stays separate
-    // from supplierPartNumbers: the CAD came from EasyEDA, not TI's buying API.
-    await writeFile(join(target, files[0]), tsx, { flag: "wx" })
-    await writeFile(
-      join(target, `${files[0]}.provenance.json`),
-      JSON.stringify(
-        {
-          ti_part_number: pn,
-          cad_source: "easyeda",
-          lcsc_part_number: `C${match.lcsc}`,
-          matched_package: match.package,
-          imported_at: new Date().toISOString(),
-          identity_checked: true,
-          footprint_electrically_verified: false,
-        },
-        null,
-        2,
-      ),
-      { flag: "wx" },
-    )
-    console.log(
-      `Imported ${pn} via EasyEDA C${match.lcsc} to ${join(target, files[0])}`,
-    )
-  } finally {
-    await rm(directory, { recursive: true, force: true })
-  }
+  const document = await importTiPart(client, positionals[0], {
+    currency: process.env.TI_CURRENCY ?? "USD",
+    format: values.format,
+  })
+  const target = resolve(values.out)
+  await mkdir(target, { recursive: true })
+  // Encoding preserves /NOPB without creating a nested path or colliding with _NOPB.
+  const file = join(
+    target,
+    `${encodeURIComponent(document.part.ti_part_number)}.ti.json`,
+  )
+  await writeFile(file, `${JSON.stringify(document, null, 2)}\n`, {
+    flag: "wx",
+  })
+  console.log(
+    `Imported ${document.part.ti_part_number} metadata from the TI API to ${file}`,
+  )
+  console.log(
+    "TSX conversion unavailable: TI's API does not supply pin mappings or PCB pad geometry.",
+  )
 }
+
 main().catch((error) => {
-  console.error(error instanceof Error ? error.message : "Import failed")
+  const message = error instanceof Error ? error.message : "TI import failed"
+  console.error(
+    error instanceof TiApiError ? `${message} (HTTP ${error.status})` : message,
+  )
   process.exitCode = 1
 })

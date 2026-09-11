@@ -31,9 +31,8 @@ export interface NormalizedPart {
   datasheet_url: string
   categories: string[]
   cad: {
-    status: "lookup_required"
-    source: "easyeda"
-    lookup_url: string
+    status: "not_provided_by_ti_api"
+    source: "ti_api"
   }
 }
 

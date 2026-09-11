@@ -39,7 +39,7 @@ const renderPart = (part: NormalizedPart): string => `<tr>
 <td>${escapeHtml(part.generic_part_number)}</td><td>${escapeHtml(part.package)}</td><td class="number">${part.pin_count ?? ""}</td>
 <td>${escapeHtml(part.description)}${part.datasheet_url ? ` <a href="${escapeHtml(part.datasheet_url)}">datasheet</a>` : ""}</td>
 <td class="number">${part.stock.toLocaleString("en-US")}</td><td class="number">${part.price === null ? "—" : `${escapeHtml(part.currency)} ${part.price.toLocaleString("en-US", { maximumFractionDigits: 6 })} @ ${part.price_quantity}`}<details><summary>Breaks</summary>${part.price_breaks.map((b) => `${b.quantity}: ${escapeHtml(part.currency)} ${b.price}`).join("<br>")}</details></td>
-<td>${escapeHtml(part.lifecycle)}</td><td><a href="${escapeHtml(part.cad.lookup_url)}">Find CAD match</a><br><span class="muted">Import availability unverified</span></td></tr>`
+<td>${escapeHtml(part.lifecycle)}</td><td><span class="muted">Not supplied by TI API</span><br>TSX conversion unavailable</td></tr>`
 
 export const renderSearchPage = (
   pathname: string,

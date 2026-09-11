@@ -61,6 +61,10 @@ describe("search against real D1 migrations and FTS", () => {
     expect(prefix.components[0].ti_part_number).toBe("TPS62160DSGT")
     expect(body.source).toBe("ti")
     expect(body.stale).toBe(false)
+    expect(body.components[0].cad).toEqual({
+      status: "not_provided_by_ti_api",
+      source: "ti_api",
+    })
   })
   it("paginates category filters and counts the complete matching set", async () => {
     const body = (await (
@@ -116,6 +120,7 @@ describe("search against real D1 migrations and FTS", () => {
       await get("/buck_converters/list?package=WSON&limit=1")
     ).text()
     expect(html).toContain("package=WSON&amp;limit=1&amp;offset=1")
+    expect(html).toContain("TSX conversion unavailable")
     const escaped = await (
       await get("/components/list?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E")
     ).text()
