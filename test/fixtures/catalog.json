@@ -1,0 +1,72 @@
+{
+  "catalog": [
+    {
+      "tiPartNumber": "TPS62160DSGR",
+      "genericPartNumber": "TPS62160",
+      "description": "Synthetic test fixture: 1-A buck step-down converter",
+      "packageType": "WSON (DSG)",
+      "pinCount": 8,
+      "quantity": 1200,
+      "pricing": [
+        {
+          "currency": "USD",
+          "priceBreaks": [
+            { "priceBreakQuantity": 1, "price": 2.03 },
+            { "priceBreakQuantity": 100, "price": 1.43 }
+          ]
+        }
+      ],
+      "minimumOrderQuantity": 1,
+      "lifeCycle": "ACTIVE",
+      "buyNowURL": "https://www.ti.com/product/TPS62160/part-details/TPS62160DSGR"
+    },
+    {
+      "tiPartNumber": "TPS62160DSGT",
+      "genericPartNumber": "TPS62160",
+      "description": "Synthetic test fixture: buck converter",
+      "packageType": "WSON (DSG)",
+      "pinCount": 8,
+      "quantity": 5000,
+      "pricing": [
+        {
+          "currency": "USD",
+          "priceBreaks": [{ "priceBreakQuantity": 250, "price": 1.8 }]
+        }
+      ],
+      "lifeCycle": "ACTIVE"
+    },
+    {
+      "tiPartNumber": "LM358DR",
+      "genericPartNumber": "LM358",
+      "description": "Synthetic test fixture: dual operational amplifier",
+      "packageType": "SOIC (D)",
+      "pinCount": 8,
+      "quantity": 7000,
+      "pricing": [
+        {
+          "currency": "EUR",
+          "priceBreaks": [{ "priceBreakQuantity": 1, "price": 0.2 }]
+        }
+      ],
+      "lifeCycle": "ACTIVE"
+    },
+    {
+      "tiPartNumber": "LP2982AIM5-3.3/NOPB",
+      "genericPartNumber": "LP2982",
+      "description": "Synthetic test fixture: low-dropout LDO linear regulator",
+      "packageType": "SOT-23 (DBV)",
+      "pinCount": 5,
+      "quantity": 100,
+      "lifeCycle": "ACTIVE"
+    },
+    {
+      "tiPartNumber": "ADS1115IDGSR",
+      "genericPartNumber": "ADS1115",
+      "description": "Synthetic test fixture: analog-to-digital converter ADC",
+      "packageType": "VSSOP (DGS)",
+      "pinCount": 10,
+      "quantity": 0,
+      "lifeCycle": "ACTIVE"
+    }
+  ]
+}

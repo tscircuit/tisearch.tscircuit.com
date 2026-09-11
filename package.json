@@ -1,0 +1,28 @@
+{
+  "name": "tisearch.tscircuit.com",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler d1 migrations apply tisearch --remote && wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply tisearch --local",
+    "sync:local": "bun scripts/sync-catalog.ts",
+    "sync:remote": "bun scripts/sync-catalog.ts --remote",
+    "import:part": "bun scripts/import-part.ts",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "wrangler deploy --dry-run --outdir dist"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@cloudflare/vitest-pool-workers": "^0.8.19",
+    "@cloudflare/workers-types": "^4.20241022.0",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.32.0"
+  }
+}

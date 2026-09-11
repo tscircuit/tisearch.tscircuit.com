@@ -1,0 +1,17 @@
+name = "tisearch"
+main = "src/index.ts"
+compatibility_date = "2025-09-06"
+compatibility_flags = ["nodejs_compat"]
+
+routes = [{ pattern = "tisearch.tscircuit.com", custom_domain = true }]
+
+[vars]
+TI_CATALOG_TTL_SECONDS = "21600"
+TI_CATALOG_MAX_AGE_SECONDS = "604800"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tisearch"
+# Replace with this service's own D1 ID before deployment.
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
