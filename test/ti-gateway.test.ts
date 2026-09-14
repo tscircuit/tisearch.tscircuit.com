@@ -5,12 +5,25 @@ import { TiGateway } from "../src/ti-gateway"
 const stub = () => env.TI_GATEWAY!.get(env.TI_GATEWAY!.newUniqueId())
 const url =
   "https://transact.ti.com/v1/products?ProductFamilyDescription=Battery+fuel+gauges&Page=0&Size=5"
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
 
 describe("shared TI gateway", () => {
   it("paces requests across URLs and serves cached responses without upstream calls", async () => {
     const gateway = stub()
     await runInDurableObject(gateway, async (instance: TiGateway, state) => {
+      // Advance a logical clock only when the gateway requests a delay.
+      // Real elapsed time includes variable Durable Object storage latency.
+      let now = Date.now()
+      vi.spyOn(Date, "now").mockImplementation(() => now)
+      const sleep = vi.fn((callback: () => void, delay: number) => {
+        now += delay
+        callback()
+        return 0
+      })
+      vi.stubGlobal("setTimeout", sleep)
       const times: number[] = []
       const fetcher = vi.fn().mockImplementation(async () => {
         times.push(Date.now())
@@ -22,7 +35,9 @@ describe("shared TI gateway", () => {
         instance.fetch(new Request(`${url}&Pin=8`)),
       ])
       expect(results.map((r) => r.status)).toEqual([200, 200])
-      expect(times[1] - times[0]).toBeGreaterThanOrEqual(490)
+      expect(sleep).toHaveBeenCalledTimes(1)
+      expect(sleep.mock.calls[0][1]).toBe(500)
+      expect(times[1] - times[0]).toBe(500)
       const cached = await instance.fetch(new Request(url))
       expect(cached.headers.get("x-ti-cache-expires-at")).toBe(
         results[0].headers.get("x-ti-cache-expires-at"),
