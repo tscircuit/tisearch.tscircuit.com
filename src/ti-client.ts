@@ -6,6 +6,10 @@ import type {
   UpstreamSearchResult,
 } from "./types"
 
+// TI can reject default HTTP client identities before OAuth validation.
+const TI_USER_AGENT =
+  "tisearch.tscircuit.com/0.1 (+https://tisearch.tscircuit.com)"
+
 export class TiApiError extends Error {
   constructor(
     message: string,
@@ -51,7 +55,10 @@ export class TiClient {
         method: "POST",
         redirect: "error",
         signal: AbortSignal.timeout(30_000),
-        headers: { "content-type": "application/x-www-form-urlencoded" },
+        headers: {
+          "content-type": "application/x-www-form-urlencoded",
+          "user-agent": TI_USER_AGENT,
+        },
         body: new URLSearchParams({
           grant_type: "client_credentials",
           client_id: this.env.TI_CLIENT_ID,
@@ -87,7 +94,11 @@ export class TiClient {
   ): Promise<{ data: unknown; remaining: number | null }> {
     const token = await this.accessToken()
     const response = await this.fetcher(url, {
-      headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: "application/json",
+        "user-agent": TI_USER_AGENT,
+      },
       signal: AbortSignal.timeout(30_000),
       redirect: "error",
     })

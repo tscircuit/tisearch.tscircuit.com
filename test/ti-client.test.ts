@@ -28,6 +28,11 @@ describe("TI on-demand adapter", () => {
       "https://transact.ti.com/v1/oauth/accesstoken",
       "https://transact.ti.com/v2/store/products/LP2982AIM5-3.3%2FNOPB?currency=USD&exclude-evms=true",
     ])
+    for (const [, init] of fetcher.mock.calls) {
+      expect(new Headers(init.headers).get("user-agent")).toBe(
+        "tisearch.tscircuit.com/0.1 (+https://tisearch.tscircuit.com)",
+      )
+    }
     expect(fetcher.mock.calls[0][1].body.toString()).toContain(
       "client_secret=c%26d",
     )
