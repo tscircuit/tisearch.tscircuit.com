@@ -27,6 +27,7 @@ const drain = async () => {
 const body = async (path: string) => (await (await get(path)).json()) as any
 const respond = (url: string | URL) => {
   const u = new URL(url)
+  if (u.pathname.endsWith("/parametrics")) return Response.json({})
   if (u.pathname.includes("oauth"))
     return Response.json({ access_token: "test-token", expires_in: 3600 })
   const pn = decodeURIComponent(u.pathname.split("/").at(-1) ?? "")
@@ -69,7 +70,7 @@ afterEach(async () => {
 describe("reference-pattern Worker and D1 cache", () => {
   it("serves home, health, categories and an empty index without upstream calls", async () => {
     expect(await body("/health")).toEqual({ ok: true })
-    expect(await (await get("/")).text()).toContain("TI Parts Search")
+    expect(await (await get("/")).text()).toContain("TI Parts Engine")
     expect(
       (await body("/categories/list.json")).categories.length,
     ).toBeGreaterThan(5)
@@ -140,24 +141,12 @@ describe("reference-pattern Worker and D1 cache", () => {
     ).first<any>()
     expect(JSON.stringify(row)).not.toMatch(/fixture-secret|test-token/)
   })
-  it("shows cached parts on home including zero stock, without upstream calls", async () => {
-    fetcher
-      .mockResolvedValueOnce(
-        Response.json({ access_token: "test-token", expires_in: 3600 }),
-      )
-      .mockResolvedValueOnce(
-        Response.json({ ...catalog.catalog[0], quantity: 0 }),
-      )
-    const result = await body("/api/search?q=TPS62160DSGR")
-    expect(result.components[0].stock).toBe(0)
-    const calls = fetcher.mock.calls.length
-    expect(await (await get("/")).text()).toContain("TPS62160DSGR")
-    expect(fetcher).toHaveBeenCalledTimes(calls)
-    await env.DB.prepare("UPDATE parts SET updated_at = ?")
-      .bind(Date.now() - 86401000)
-      .run()
-    expect(await (await get("/")).text()).not.toContain("TPS62160DSGR")
-    expect(fetcher).toHaveBeenCalledTimes(calls)
+  it("uses the reference category-tile homepage without fetching parts", async () => {
+    const html = await (await get("/")).text()
+    expect(html).toContain("flex flex-wrap gap-4")
+    expect(html).not.toContain("Recently retrieved parts")
+    expect(html).not.toContain("<section")
+    expect(fetcher).not.toHaveBeenCalled()
   })
   it("shares simultaneous cold refreshes within the Worker", async () => {
     const results = await Promise.all([
@@ -165,7 +154,7 @@ describe("reference-pattern Worker and D1 cache", () => {
       get("/api/search?q=TPS62160DSGR"),
     ])
     expect(results.every((r) => r.status === 200)).toBe(true)
-    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(fetcher).toHaveBeenCalledTimes(3)
   })
   it("returns stale cache immediately and replaces it after background refresh", async () => {
     await get("/api/search?q=TPS62160DSGR")
@@ -247,8 +236,12 @@ describe("reference-pattern Worker and D1 cache", () => {
     await env.DB.prepare(
       "UPDATE search_cache SET expires_at=0, stale_until=0",
     ).run()
-    fetcher.mockResolvedValue(
-      Response.json({ ...catalog.catalog[0], quantity: 0 }),
+    fetcher.mockImplementation((url: string | URL) =>
+      Promise.resolve(
+        String(url).endsWith("/parametrics")
+          ? Response.json({})
+          : Response.json({ ...catalog.catalog[0], quantity: 0 }),
+      ),
     )
     expect(
       (await body("/api/search?q=TPS62160DSGR&in_stock=true")).components,
@@ -297,7 +290,7 @@ describe("reference-pattern Worker and D1 cache", () => {
   })
   it("escapes HTML and renders the common table without an import workflow", async () => {
     const html = await (await get("/components/list?q=TPS62160DSGR")).text()
-    expect(html).toContain("Unit Price @ Qty")
+    expect(html).toContain("Price")
     expect(html).toContain("Texas Instruments")
     expect(html).not.toMatch(/CAD|TSX|jlcsearch|EasyEDA/)
     const escaped = await (
@@ -324,7 +317,7 @@ describe("reference-pattern Worker and D1 cache", () => {
     const ctx = createExecutionContext()
     await worker.scheduled({} as ScheduledController, runtime, ctx)
     await waitOnExecutionContext(ctx)
-    expect(fetcher.mock.calls.length - previous).toBe(1)
+    expect(fetcher.mock.calls.length - previous).toBe(2)
     expect(
       (
         await env.DB.prepare(
@@ -357,6 +350,6 @@ describe("reference-pattern Worker and D1 cache", () => {
           "SELECT count(*) as n FROM search_cache WHERE expires_at=0",
         ).first<any>()
       ).n,
-    ).toBe(1)
+    ).toBe(2)
   })
 })

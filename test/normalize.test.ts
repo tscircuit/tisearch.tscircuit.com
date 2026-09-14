@@ -6,6 +6,7 @@ import {
 } from "../src/normalize"
 import { createSearchRequest } from "../src/search-request"
 import catalog from "./fixtures/catalog.json"
+import parametrics from "./fixtures/parametrics.json"
 const parse = (q: string) =>
   createSearchRequest(new URL(`https://test/api/search?q=TPS62160&${q}`))
 describe("TI common part schema", () => {
@@ -73,6 +74,26 @@ describe("TI common part schema", () => {
     ).toHaveLength(1)
     expect(applyPostFilters(parts, parse("param_1_999=5"))).toHaveLength(0)
     expect(applyPostFilters(parts, parse("in_stock=false"))).toHaveLength(5)
+  })
+  it("preserves all electrical specs, units and ranges and filters comma-containing values", () => {
+    const p = normalizeProduct({ store: catalog.catalog[0], parametrics })
+    expect(p.parameters["Vin (V)"]).toBe("3–17")
+    expect(p.parameters["Iout (A)"]).toBe("≤ 1")
+    expect(p.parameters["Iq (A)"]).toBe("0.000017")
+    expect(p.parameters["TI functional safety category"]).toBeUndefined()
+    expect(p.parametrics).toEqual(parametrics)
+    const filter = buildTiFilterOptions([p]).ParametricFilters!.find(
+      (f) => f.ParameterName === "Control mode",
+    )!
+    const selection = filter.FilterValues![0]
+    expect(selection.ValueName).toBe("Constant on-time (COT), DCS-Control")
+    expect(selection.ValueId).not.toContain(",")
+    expect(
+      applyPostFilters(
+        [p],
+        parse(`param_1_${filter.ParameterId}=${selection.ValueId}`),
+      ),
+    ).toEqual([p])
   })
   it("rejects absent or malformed stock", () => {
     expect(() =>

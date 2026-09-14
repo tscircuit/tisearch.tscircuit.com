@@ -159,6 +159,25 @@ export class TiClient {
         )
       return raw
     }
+    const enrich = async (
+      record: TiProductRecord,
+    ): Promise<TiProductRecord> => {
+      const pn = validatePartNumber(record.store.tiPartNumber)
+      try {
+        record.parametrics = object(
+          await get(
+            new URL(
+              `https://transact.ti.com/v1/products/${encodeURIComponent(pn)}/parametrics`,
+            ),
+          ),
+        )
+      } catch (error) {
+        // TI has no parametric record for some Store listings.
+        if (!(error instanceof TiApiError) || error.status !== 404) throw error
+        record.parametrics = {}
+      }
+      return record
+    }
     const page = request.offset / request.limit
     let products: TiProductRecord[] = []
     let total: number
@@ -169,7 +188,7 @@ export class TiClient {
         const store = await product(pn)
         return {
           response: {
-            products: request.offset === 0 ? [{ store }] : [],
+            products: request.offset === 0 ? [await enrich({ store })] : [],
             upstreamTotal: 1,
             nextOffset: null,
           },
@@ -212,7 +231,7 @@ export class TiClient {
         throw new TiApiError("Invalid TI product information page", 502)
       count = body.Content.length
       total = typeof body.TotalElements === "number" ? body.TotalElements : NaN
-      // Bound fan-out to one Store lookup per result, at most 20 per page.
+      // Fetch at most 20 Store listings; each is enriched once below.
       // Product Information's InventoryStatus is explicitly unsupported by TI.
       for (const raw of body.Content) {
         const information = object(raw)
@@ -232,6 +251,8 @@ export class TiClient {
       (count > 0 && total < request.offset + count)
     )
       throw new TiApiError("Invalid TI product count", 502)
+    for (let i = 0; i < products.length; i++)
+      products[i] = await enrich(products[i])
     return {
       response: {
         products,

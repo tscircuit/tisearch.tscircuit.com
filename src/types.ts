@@ -65,11 +65,13 @@ export interface NormalizedPart {
   marketplace: boolean
   lifecycle: string
   parameters: Record<string, string>
+  parametrics?: Record<string, unknown>
 }
 
 export interface TiProductRecord {
   store: Record<string, unknown>
   information?: Record<string, unknown>
+  parametrics?: Record<string, unknown>
 }
 
 export interface TiSearchResponse {

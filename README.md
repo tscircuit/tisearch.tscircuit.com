@@ -15,7 +15,7 @@ Built with TypeScript, Cloudflare Workers, and D1.
 - Browse categories or search the beginning of a TI product family name, such
   as `DC/DC converters` or `Comparators`.
 - Filter by inventory, package, pin count, lifecycle, and product parameters.
-- View recently retrieved parts on the homepage.
+- Browse all category shortcuts from the compact homepage.
 
 Listings include out-of-stock parts by default. Select **In stock** to hide
 parts with zero available inventory. TI groups buck, boost, and buck-boost
@@ -70,6 +70,18 @@ Keyword searches use the local index, return `partial: true`, and do not
 search TI's entire catalog. Other endpoints include `/categories/list`,
 `/package_index/list`, and `/health`.
 
+Each result includes specifications returned by TI's Product Information
+parametrics endpoint, alongside Store inventory and pricing. The `parameters`
+map contains readable values with units and ranges; `parametrics` preserves
+TI's original specification objects, including descriptions and range bounds.
+Filter dropdowns cover all parameters present on the current page.
+
+A family page makes at most one discovery request, one Store request per
+product, and one parametrics request per Store listing. Default category pages
+remain limited to five products; cached searches make no upstream requests.
+TI listings without parametric records still appear with their available
+package information. An upstream rate-limit response stops the refresh.
+
 ## Data freshness
 
 Results are cached for 24 hours. Expired results may be served for seven more
@@ -77,8 +89,8 @@ days while refreshing in the background; responses include `cached`, `stale`,
 and `cache_expires_at` metadata. A scheduled job refreshes popular expired
 queries every six hours with bounded requests and throttling checks.
 
-The homepage reads cached parts updated within the last 24 hours without
-making additional TI requests. Stock and prices can change between refreshes.
+The homepage and category directory do not call TI. Stock and prices can
+change between refreshes.
 
 ## Local development
 

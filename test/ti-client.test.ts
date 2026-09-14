@@ -3,6 +3,7 @@ import { TiClient } from "../src/ti-client"
 import { createSearchRequest } from "../src/search-request"
 import type { Env } from "../src/types"
 import catalog from "./fixtures/catalog.json"
+import parametrics from "./fixtures/parametrics.json"
 
 const env = { TI_CLIENT_ID: "a+b", TI_CLIENT_SECRET: "c&d" } as Env
 const request = (query: string) =>
@@ -10,9 +11,16 @@ const request = (query: string) =>
 const auth = () =>
   Response.json({ access_token: "secret-token", expires_in: 3600 })
 const mock = (...responses: Response[]) => {
-  const f = vi.fn().mockResolvedValueOnce(auth())
-  for (const response of responses) f.mockResolvedValueOnce(response)
-  return f
+  const queue = [auth(), ...responses]
+  return vi
+    .fn()
+    .mockImplementation((url: string | URL) =>
+      Promise.resolve(
+        String(url).endsWith("/parametrics")
+          ? Response.json({})
+          : queue.shift()!,
+      ),
+    )
 }
 
 describe("TI on-demand adapter", () => {
@@ -46,6 +54,7 @@ describe("TI on-demand adapter", () => {
     expect(fetcher.mock.calls.map(([u]) => String(u))).toEqual([
       "https://transact.ti.com/v1/oauth/accesstoken",
       "https://transact.ti.com/v2/store/products/LP2982AIM5-3.3%2FNOPB?currency=USD&exclude-evms=true",
+      "https://transact.ti.com/v1/products/LP2982AIM5-3.3%2FNOPB/parametrics",
     ])
     for (const [, init] of fetcher.mock.calls) {
       expect(new Headers(init.headers).get("user-agent")).toBe(
@@ -121,6 +130,63 @@ describe("TI on-demand adapter", () => {
         .response,
     ).toEqual({ products: [], upstreamTotal: 2, nextOffset: 1 })
   })
+  it("enriches exact, base-part and family results from TI parametrics", async () => {
+    for (const query of [
+      "q=TPS62160DSGR",
+      "q=TPS62160",
+      "q=DC%2FDC&mode=family",
+    ]) {
+      const fetcher = vi.fn().mockImplementation(async (url: string | URL) => {
+        const u = new URL(url)
+        if (u.pathname.includes("oauth")) return auth()
+        if (u.pathname.endsWith("/parametrics"))
+          return Response.json(parametrics)
+        if (u.pathname.endsWith("/TPS62160"))
+          return new Response(null, { status: 404 })
+        if (u.pathname === "/v2/store/products")
+          return Response.json({
+            content: [catalog.catalog[0]],
+            totalElements: 1,
+          })
+        if (u.pathname === "/v1/products")
+          return Response.json({
+            Content: [{ Identifier: "TPS62160DSGR" }],
+            TotalElements: 1,
+          })
+        return Response.json(catalog.catalog[0])
+      })
+      const result = await new TiClient(env, fetcher).search(request(query))
+      expect(result.response.products[0].parametrics).toEqual(parametrics)
+      expect(
+        fetcher.mock.calls.filter(([u]) => String(u).endsWith("/parametrics")),
+      ).toHaveLength(1)
+    }
+  })
+  it.each([404, 429])(
+    "handles parametric HTTP %s without retries",
+    async (status) => {
+      const fetcher = vi
+        .fn()
+        .mockImplementation(async (url: string | URL) =>
+          String(url).includes("oauth")
+            ? auth()
+            : String(url).endsWith("/parametrics")
+              ? new Response(null, { status, headers: { "retry-after": "60" } })
+              : Response.json(catalog.catalog[0]),
+        )
+      const search = new TiClient(env, fetcher).search(
+        request("q=TPS62160DSGR"),
+      )
+      if (status === 404)
+        expect((await search).response.products[0].parametrics).toEqual({})
+      else
+        await expect(search).rejects.toMatchObject({
+          status: 429,
+          retryAfter: "60",
+        })
+      expect(fetcher).toHaveBeenCalledTimes(3)
+    },
+  )
   it("reuses and refreshes OAuth tokens", async () => {
     let now = 0
     const fetcher = vi
@@ -135,10 +201,14 @@ describe("TI on-demand adapter", () => {
     const client = new TiClient(env, fetcher, () => now)
     await client.search(request("q=TPS62160DSGR"))
     await client.search(request("q=TPS62160DSGR"))
-    expect(fetcher).toHaveBeenCalledTimes(3)
+    expect(
+      fetcher.mock.calls.filter(([url]) => String(url).includes("oauth")),
+    ).toHaveLength(1)
     now = 3600000
     await client.search(request("q=TPS62160DSGR"))
-    expect(fetcher).toHaveBeenCalledTimes(5)
+    expect(
+      fetcher.mock.calls.filter(([url]) => String(url).includes("oauth")),
+    ).toHaveLength(2)
   })
   it.each([401, 403, 429, 500])(
     "does not retry or fall back on HTTP %s",

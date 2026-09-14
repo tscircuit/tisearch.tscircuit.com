@@ -342,24 +342,3 @@ export const getRefreshCandidates = async (
 
   return (result.results ?? []).map(mapCacheRow)
 }
-
-export const getRecentParts = async (env: Env): Promise<NormalizedPart[]> => {
-  const result = await env.DB.prepare(
-    `SELECT raw_json FROM parts
-     WHERE updated_at >= ? AND json_extract(raw_json, '$.currency') = ?
-     ORDER BY stock DESC, updated_at DESC, ti_product_number
-     LIMIT 20`,
-  )
-    .bind(
-      Date.now() - secondsFromEnv(env.TI_CACHE_TTL_SECONDS, 86400) * 1000,
-      env.TI_CURRENCY ?? "USD",
-    )
-    .all<{ raw_json: string }>()
-  return (result.results ?? []).flatMap(({ raw_json }) => {
-    try {
-      return [JSON.parse(raw_json) as NormalizedPart]
-    } catch {
-      return []
-    }
-  })
-}
