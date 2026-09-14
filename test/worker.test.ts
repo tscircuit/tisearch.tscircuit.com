@@ -68,7 +68,7 @@ afterEach(async () => {
 describe("reference-pattern Worker and D1 cache", () => {
   it("serves home, health, categories and an empty index without upstream calls", async () => {
     expect(await body("/health")).toEqual({ ok: true })
-    expect(await (await get("/")).text()).toContain("TI In-Stock Parts Engine")
+    expect(await (await get("/")).text()).toContain("TI Parts Search")
     expect(
       (await body("/categories/list.json")).categories.length,
     ).toBeGreaterThan(5)
@@ -103,6 +103,25 @@ describe("reference-pattern Worker and D1 cache", () => {
       "SELECT response_json,request_json FROM search_cache",
     ).first<any>()
     expect(JSON.stringify(row)).not.toMatch(/fixture-secret|test-token/)
+  })
+  it("shows cached parts on home including zero stock, without upstream calls", async () => {
+    fetcher
+      .mockResolvedValueOnce(
+        Response.json({ access_token: "test-token", expires_in: 3600 }),
+      )
+      .mockResolvedValueOnce(
+        Response.json({ ...catalog.catalog[0], quantity: 0 }),
+      )
+    const result = await body("/api/search?q=TPS62160DSGR")
+    expect(result.components[0].stock).toBe(0)
+    const calls = fetcher.mock.calls.length
+    expect(await (await get("/")).text()).toContain("TPS62160DSGR")
+    expect(fetcher).toHaveBeenCalledTimes(calls)
+    await env.DB.prepare("UPDATE parts SET updated_at = ?")
+      .bind(Date.now() - 86401000)
+      .run()
+    expect(await (await get("/")).text()).not.toContain("TPS62160DSGR")
+    expect(fetcher).toHaveBeenCalledTimes(calls)
   })
   it("shares simultaneous cold refreshes within the Worker", async () => {
     const results = await Promise.all([
@@ -188,16 +207,16 @@ describe("reference-pattern Worker and D1 cache", () => {
     ).toContain("application/json")
   })
   it("learns out-of-stock updates even when filtered out of search results", async () => {
-    await get("/api/search?q=TPS62160DSGR")
+    await get("/api/search?q=TPS62160DSGR&in_stock=true")
     await env.DB.prepare(
       "UPDATE search_cache SET expires_at=0, stale_until=0",
     ).run()
     fetcher.mockResolvedValue(
       Response.json({ ...catalog.catalog[0], quantity: 0 }),
     )
-    expect((await body("/api/search?q=TPS62160DSGR")).components).toHaveLength(
-      0,
-    )
+    expect(
+      (await body("/api/search?q=TPS62160DSGR&in_stock=true")).components,
+    ).toHaveLength(0)
     expect(
       (await body("/api/index/search?q=TPS62160DSGR")).components,
     ).toHaveLength(0)
@@ -216,13 +235,15 @@ describe("reference-pattern Worker and D1 cache", () => {
             : Response.json({ ...catalog.catalog[0], quantity: 0 }),
       )
     })
-    const b = await body("/buck_converters/list.json?limit=1")
+    const b = await body("/buck_converters/list.json?limit=1&in_stock=true")
     expect(b.meta).toMatchObject({
       total: 0,
       upstream_total: 2,
       next_offset: 1,
     })
-    const html = await (await get("/buck_converters/list?limit=1")).text()
+    const html = await (
+      await get("/buck_converters/list?limit=1&in_stock=true")
+    ).text()
     expect(html).toContain("offset=1")
     expect(html).toContain("Next")
   })

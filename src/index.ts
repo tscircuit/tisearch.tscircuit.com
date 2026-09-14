@@ -11,6 +11,7 @@ import {
   getIndexedCategories,
   getPackageIndex,
   getRefreshCandidates,
+  getRecentParts,
   putCachedSearch,
   searchIndexedParts,
 } from "./search-cache"
@@ -370,7 +371,7 @@ const handleFetch = async (
     return jsonResponse({ ok: true }, origin)
   }
   if (pathname === "/") {
-    return htmlResponse(renderHomePage(), origin)
+    return htmlResponse(renderHomePage(await getRecentParts(env)), origin)
   }
   if (pathname === "/categories/list") {
     return handleCategories(request, env, url, origin)

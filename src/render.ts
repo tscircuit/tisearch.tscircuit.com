@@ -67,7 +67,7 @@ button { @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-3 r
     <div class="wrapper">
       <div class="border-b border-gray-300 py-1 flex flex-wrap justify-between items-center gap-2">
         <div>
-          <span class="px-1 pr-2">TI In-Stock Parts Engine (Unofficial)</span>
+          <span class="px-1 pr-2">TI Parts Search (Unofficial)</span>
           <span><a href="/">home</a></span>
           ${renderBreadcrumbs(pathname)}
         </div>
@@ -87,7 +87,7 @@ button { @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-3 r
   </body>
 </html>`
 
-export const renderHomePage = (): string => {
+export const renderHomePage = (parts: NormalizedPart[] = []): string => {
   const links = [
     { path: "/categories/list", label: "Categories" },
     { path: "/footprint_index/list", label: "Package Index" },
@@ -101,7 +101,7 @@ export const renderHomePage = (): string => {
 
   return renderShell(
     "/",
-    `<div><div class="flex flex-wrap gap-4 *:text-lg *:border *:rounded *:p-2 *:border-gray-300 *:w-32 *:text-sm *:text-center">${links}</div></div>`,
+    `<div><div class="flex flex-wrap gap-4 *:text-lg *:border *:rounded *:p-2 *:border-gray-300 *:w-32 *:text-sm *:text-center">${links}</div><h2>Recently retrieved parts</h2><p>Cached TI stock and pricing from the last 24 hours. Browse a category or search a part number to find more.</p>${parts.length ? renderPartsTable(parts) : "<p>No parts retrieved yet. Select a category above to load parts from TI.</p>"}</div>`,
   )
 }
 
@@ -169,7 +169,7 @@ const renderFilters = (
 ): string => {
   const queryField = `<div><label>${category ? "Family prefix" : "Search"}:</label><input name="q" value="${escapeHtml(payload.query)}" /></div>
     <div><label>Search by:</label><select name="mode"><option value="">Auto</option><option value="part"${url.searchParams.get("mode") === "part" ? " selected" : ""}>Part number</option><option value="family"${url.searchParams.get("mode") === "family" || (category && !url.searchParams.get("mode")) ? " selected" : ""}>Family prefix</option></select></div>
-    <div><label>Inventory:</label><select name="in_stock"><option value="true">In stock</option><option value="false"${url.searchParams.get("in_stock") === "false" ? " selected" : ""}>All store listings</option></select></div><input type="hidden" name="limit" value="${payload.limit}">`
+    <div><label>Inventory:</label><select name="in_stock"><option value="true">In stock</option><option value="false"${url.searchParams.get("in_stock") !== "true" ? " selected" : ""}>All store listings</option></select></div><input type="hidden" name="limit" value="${payload.limit}">`
   const filters = [
     queryField,
     renderStaticFilters(category, url),
@@ -197,7 +197,8 @@ const renderParameters = (parameters: Record<string, string>): string => {
 }
 
 const renderPartsTable = (parts: NormalizedPart[]): string => {
-  if (parts.length === 0) return "<p>No in-stock results found.</p>"
+  if (parts.length === 0)
+    return "<p>No matching products on this page. Try the next page or adjust the inventory filter.</p>"
   const rows = parts
     .map(
       (part) => `<tr>

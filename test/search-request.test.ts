@@ -14,9 +14,11 @@ describe("TI search request", () => {
         CATEGORY_BY_PATH.get("/buck_converters/list"),
       ),
     ).toMatchObject({
-      query: "Buck converters",
+      query: "DC/DC converters",
       responseKey: "buck_converters",
       mode: "family",
+      limit: 5,
+      inStock: false,
     })
   })
   it.each([

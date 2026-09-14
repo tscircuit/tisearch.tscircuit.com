@@ -12,7 +12,7 @@ and compact table UI.
 ```sh
 curl 'https://tisearch.tscircuit.com/api/search?q=TPS62160DSGR'
 curl 'https://tisearch.tscircuit.com/api/search?q=TPS62160&limit=20'
-curl 'https://tisearch.tscircuit.com/buck_converters/list.json?package=WSON&num_pins=8'
+curl 'https://tisearch.tscircuit.com/dcdc_converters/list.json?package=WSON&num_pins=8'
 curl 'https://tisearch.tscircuit.com/api/search?q=RF-sampling&mode=family'
 curl 'https://tisearch.tscircuit.com/api/index/search?q=buck'
 ```
@@ -127,3 +127,10 @@ including permission for the intended public display and redistribution.
 
 Upstream contracts: [Store V2](https://www.ti.com/content/dam/developer-api/inventory-pricing-api.yaml),
 [Product Information V1](https://www.ti.com/content/dam/developer-api/product-information-api.yaml).
+
+Category shortcuts use TI's Product Information family names. TI groups buck,
+boost and buck-boost devices under `DC/DC converters`; the old converter URLs
+remain aliases to this broader family and show its actual name. Category pages
+request five products at a time. Listings include zero-stock parts by default;
+use `in_stock=true` to restrict results. The homepage shows recently retrieved
+parts from D1 (up to 24 hours old), without making upstream requests.

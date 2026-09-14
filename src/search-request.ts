@@ -45,11 +45,11 @@ export const createSearchRequest = (
       throw new SearchInputError("Provide one TI orderable or base part number")
     }
   }
-  const limit = integer(p.get("limit"), 20, 1, 20)
+  const limit = integer(p.get("limit"), category ? 5 : 20, 1, 20)
   const offset = integer(p.get("offset"), 0, 0, 100000)
   if (offset % limit !== 0)
     throw new SearchInputError("offset must be a multiple of limit")
-  const inStock = p.get("in_stock") || "true"
+  const inStock = p.get("in_stock") || "false"
   if (!["true", "false"].includes(inStock))
     throw new SearchInputError("in_stock must be true or false")
   const postFilters: Record<string, string> = {}
