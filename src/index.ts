@@ -18,6 +18,7 @@ import {
   createSearchRequest,
   getSearchCacheKey,
   SearchInputError,
+  upstreamRequest,
 } from "./search-request"
 import {
   renderErrorPage,
@@ -27,11 +28,20 @@ import {
 } from "./render"
 import type { Env, SearchCacheRow, SearchPayload, SearchRequest } from "./types"
 
+export { TiGateway } from "./ti-gateway"
+
 const clients = new WeakMap<Env, TiClient>()
 const getClient = (env: Env): TiClient => {
   let client = clients.get(env)
   if (!client) {
-    client = new TiClient(env, (input, init) => fetch(input, init))
+    client = new TiClient(env, (input, init) =>
+      env.TI_GATEWAY
+        ? env.TI_GATEWAY.get(env.TI_GATEWAY.idFromName("ti-account")).fetch(
+            input,
+            init,
+          )
+        : fetch(input, init),
+    )
     clients.set(env, client)
   }
   return client
@@ -167,6 +177,7 @@ const payloadForResponseKey = (
   [responseKey]: payload.components,
   meta: {
     query: payload.query,
+    filter_scope: "page",
     total: payload.total,
     upstream_total: payload.upstream_total,
     limit: payload.limit,
@@ -201,10 +212,8 @@ const handleSearchRoute = async (
         })
   }
 
-  const cacheKey = await getSearchCacheKey(
-    searchRequest,
-    env.TI_CURRENCY ?? "USD",
-  )
+  const retrieval = upstreamRequest(searchRequest)
+  const cacheKey = await getSearchCacheKey(retrieval, env.TI_CURRENCY ?? "USD")
   const cached = await getCachedSearch(env, cacheKey)
   const now = Date.now()
 
@@ -217,10 +226,10 @@ const handleSearchRoute = async (
   } else if (cached && cached.row.stale_until > now) {
     payload = buildSearchPayload(cached.row, cached.document, true, true)
     cacheStatus = "STALE"
-    ctx.waitUntil(refreshInBackground(env, cacheKey, searchRequest))
+    ctx.waitUntil(refreshInBackground(env, cacheKey, retrieval))
   } else {
     try {
-      const refreshed = await refreshSearch(env, cacheKey, searchRequest)
+      const refreshed = await refreshSearch(env, cacheKey, retrieval)
       payload = refreshed.payload
       cacheStatus = "MISS"
     } catch (error) {
@@ -232,7 +241,7 @@ const handleSearchRoute = async (
         error instanceof TiApiError
           ? error
           : new TiApiError("TI search failed", 502)
-      const status = [401, 403, 429].includes(apiError.status)
+      const status = [401, 403].includes(apiError.status)
         ? 503
         : apiError.status
       return json
@@ -253,6 +262,9 @@ const handleSearchRoute = async (
           )
     }
   }
+
+  const components = applyPostFilters(payload.components, searchRequest)
+  payload = { ...payload, components, total: components.length }
 
   if (json) {
     const body =

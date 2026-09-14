@@ -94,7 +94,10 @@ export const putCachedSearch = async (
   const now = Date.now()
   const ttlSeconds = secondsFromEnv(env.TI_CACHE_TTL_SECONDS, 86_400)
   const staleTtlSeconds = secondsFromEnv(env.TI_STALE_TTL_SECONDS, 604_800)
-  const expiresAt = now + ttlSeconds * 1_000
+  const expiresAt = Math.min(
+    now + ttlSeconds * 1_000,
+    upstreamResponse.expiresAt ?? Infinity,
+  )
   const staleUntil = expiresAt + staleTtlSeconds * 1_000
   const document: CachedSearchDocument = {
     components,
@@ -227,6 +230,7 @@ export const buildSearchPayload = (
   stale: boolean,
 ): SearchPayload => ({
   query: row.query,
+  filter_scope: "page",
   components: document.components,
   total: document.total,
   upstream_total: document.upstream_total,

@@ -117,6 +117,38 @@ describe("TI on-demand adapter", () => {
     expect(result.response).toMatchObject({ nextOffset: 1, upstreamTotal: 3 })
     expect(result.response.products[0].store.quantity).toBe(0)
   })
+  it("translates an unaligned public offset into two TI pages and enriches only the requested slice", async () => {
+    const fetcher = mock(
+      Response.json({
+        Content: [{ Identifier: "LM358DR" }, { Identifier: "TPS62160DSGR" }],
+        TotalElements: 4,
+      }),
+      Response.json({
+        Content: [{ Identifier: "TPS62160DSGT" }, { Identifier: "NE555P" }],
+        TotalElements: 4,
+      }),
+      Response.json(catalog.catalog[0]),
+      Response.json(catalog.catalog[1]),
+    )
+    const result = await new TiClient(env, fetcher).search(
+      request("q=DC%2FDC&limit=2&offset=1"),
+    )
+    expect(result.response.products.map((p) => p.store.tiPartNumber)).toEqual([
+      "TPS62160DSGR",
+      "TPS62160DSGT",
+    ])
+    expect(result.response.nextOffset).toBe(3)
+    expect(
+      fetcher.mock.calls
+        .slice(1, 3)
+        .map(([url]) => new URL(url).searchParams.get("Page")),
+    ).toEqual(["0", "1"])
+    expect(
+      fetcher.mock.calls.filter(([url]) =>
+        String(url).includes("/v2/store/products/"),
+      ),
+    ).toHaveLength(2)
+  })
   it("skips family products without a Store listing and preserves continuation", async () => {
     const fetcher = mock(
       Response.json({

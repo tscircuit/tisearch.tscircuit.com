@@ -25,7 +25,7 @@ describe("TI search request", () => {
     "",
     "q=x&limit=NaN",
     "q=x&limit=21",
-    "q=x&limit=2&offset=1",
+
     "q=x&mode=keyword",
     "q=x&num_pins=-1",
     "q=x&in_stock=yes",

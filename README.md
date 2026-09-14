@@ -6,7 +6,7 @@ pricing, packages, and datasheets.
 **[tisearch.tscircuit.com](https://tisearch.tscircuit.com)**
 
 An unofficial service maintained by tscircuit, powered by TI's official APIs.
-Built with TypeScript, Cloudflare Workers, and D1.
+Built with TypeScript, Cloudflare Workers, D1, and a shared Durable Object.
 
 ## Searching
 
@@ -19,7 +19,8 @@ Built with TypeScript, Cloudflare Workers, and D1.
 
 Listings include out-of-stock parts by default. Select **In stock** to hide
 parts with zero available inventory. TI groups buck, boost, and buck-boost
-converters under the broader **DC/DC converters** family.
+converters under the broader **DC/DC converters** family. The buck, boost, and
+buck-boost URLs apply a topology filter to TI specifications.
 
 ## Categories
 
@@ -61,8 +62,9 @@ and a `meta` object. Listing pages support `.json`, `?json=true`, or an
 `Accept: application/json` header.
 
 Use `mode=part` or `mode=family` to select a search mode explicitly. `limit`
-accepts 1–20 results (default 20 for searches, 5 for categories); `offset` must
-be a multiple of `limit`. `total` counts matches on the current page;
+accepts 1–20 results (default 20 for searches, 5 for categories); `offset`
+accepts any nonnegative integer up to 100000. The adapter converts offsets
+to TI integer pages, fetching a second page only when required. `total` counts matches on the current page;
 `upstream_total` is TI's count before local filtering. Follow `next_offset`
 for subsequent pages, including when filters leave a page empty.
 
@@ -76,11 +78,29 @@ map contains readable values with units and ranges; `parametrics` preserves
 TI's original specification objects, including descriptions and range bounds.
 Filter dropdowns cover all parameters present on the current page.
 
-A family page makes at most one discovery request, one Store request per
+A family page makes at most two discovery requests, one Store request per
 product, and one parametrics request per Store listing. Default category pages
 remain limited to five products; cached searches make no upstream requests.
 TI listings without parametric records still appear with their available
 package information. An upstream rate-limit response stops the refresh.
+
+Named filters include `resolution_bits`, `num_channels`, `channel_count`,
+`output_type`, `output_voltage`, `output_voltage_min`, `output_voltage_max`,
+`core`, `flash_min`, and `ram_min`. Pin count becomes TI's `Pin`,
+`package_code` becomes `PackageType`, and lifecycle becomes `LifeCycleStatus`.
+Electrical filters run locally against TI parametrics; they are not sent as
+unsupported query parameters to TI. Filters apply to the fetched page, not
+TI's entire catalog. Missing specifications do not match a filter.
+
+`output_voltage_min` selects parts with a rated minimum at or below the
+requested value; `output_voltage_max` selects parts with a rated maximum at
+or above it. Memory thresholds use bytes. Responses include normalized
+numeric fields, `num_pins`, and `price1` (null unless TI quotes quantity one).
+`subcategory_name` accepts the configured category names. Compatibility routes
+include `/voltage_regulators/list.json` (key `regulators`),
+`/analog_multiplexers/list.json`, and `/microcontrollers/list.json`.
+Supplier inventory flags `is_basic`, `is_preferred`, and `lcsc` are unavailable
+for TI and return a validation error.
 
 ## Data freshness
 
@@ -88,6 +108,19 @@ Results are cached for 24 hours. Expired results may be served for seven more
 days while refreshing in the background; responses include `cached`, `stale`,
 and `cache_expires_at` metadata. A scheduled job refreshes popular expired
 queries every six hours with bounded requests and throttling checks.
+
+The `TiGateway` Durable Object shares raw TI responses across all Worker
+instances and query/filter variants. Uncached requests are serialized at
+most twice per second. On HTTP 429 it persists a cooldown of at least 60
+seconds (or longer when TI supplies `Retry-After`) and makes no automatic
+retries. Cached URLs remain available during the cooldown. A cold throttled
+request returns HTTP 429 with `Retry-After`, rather than a misleading 503.
+OAuth tokens are shared only in memory; credentials and tokens are never
+written to the gateway's persistent storage.
+
+Gateway responses expire after 24 hours, with one-hour negative caching for
+missing products. D1 freshness never extends beyond its source responses'
+expiry. Expired gateway entries are cleaned up daily.
 
 The homepage and category directory do not call TI. Stock and prices can
 change between refreshes.
@@ -119,7 +152,8 @@ database; they do not call TI's APIs.
 
 ## Deployment
 
-`wrangler.toml` configures the production Worker, domain, D1 database, and
+`wrangler.toml` configures the production Worker, domain, D1 database, Durable
+Object binding/migration, and
 scheduled refresh in the tscircuit Cloudflare account. For a separate
 installation, create a D1 database with `bun x wrangler d1 create tisearch`
 and update the account, database, and domain configuration first.

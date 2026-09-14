@@ -1,3 +1,4 @@
+import { standardFields, matchesSpecFilter } from "./jlc-compat"
 import { validatePartNumber } from "./part-number"
 import type {
   NormalizedPart,
@@ -96,6 +97,9 @@ export const normalizeProduct = (
     if (value) parameters[unit ? `${name} (${unit})` : name] = value
   }
   return {
+    ...standardFields(parametrics),
+    price1: priceBreaks.find((b) => b.quantity === 1)?.price ?? null,
+    num_pins: pins,
     ti_product_number: pn,
     parametrics,
     ti_part_number: pn,
@@ -213,6 +217,7 @@ export const applyPostFilters = (
     )
       return false
     for (const [key, expected] of Object.entries(request.postFilters)) {
+      if (!matchesSpecFilter(part, key, expected)) return false
       if (
         key === "package" &&
         !part.package.toLowerCase().includes(expected.toLowerCase())

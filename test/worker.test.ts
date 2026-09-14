@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import worker from "../src/index"
 import { CATEGORY_DEFINITIONS } from "../src/categories"
 import type { Env } from "../src/types"
+import parametrics from "./fixtures/parametrics.json"
 import catalog from "./fixtures/catalog.json"
 
 let runtime: Env
@@ -27,7 +28,7 @@ const drain = async () => {
 const body = async (path: string) => (await (await get(path)).json()) as any
 const respond = (url: string | URL) => {
   const u = new URL(url)
-  if (u.pathname.endsWith("/parametrics")) return Response.json({})
+  if (u.pathname.endsWith("/parametrics")) return Response.json(parametrics)
   if (u.pathname.includes("oauth"))
     return Response.json({ access_token: "test-token", expires_in: 3600 })
   const pn = decodeURIComponent(u.pathname.split("/").at(-1) ?? "")
@@ -54,6 +55,7 @@ const respond = (url: string | URL) => {
 beforeEach(() => {
   runtime = {
     ...env,
+    TI_GATEWAY: undefined,
     TI_CLIENT_ID: "fixture-id",
     TI_CLIENT_SECRET: "fixture-secret",
   }
@@ -108,7 +110,12 @@ describe("reference-pattern Worker and D1 cache", () => {
       const result = (await r.json()) as any
       expect(result[category.responseKey]).toEqual([])
       expect(result.meta.limit).toBe(5)
-      const upstream = new URL(fetcher.mock.calls.at(-1)![0])
+      const upstream = fetcher.mock.calls
+        .map(([url]) => new URL(url))
+        .find(
+          (url) =>
+            url.searchParams.get("ProductFamilyDescription") === category.query,
+        )!
       expect(upstream.pathname).toBe("/v1/products")
       expect(upstream.searchParams.get("ProductFamilyDescription")).toBe(
         category.query,
@@ -140,6 +147,39 @@ describe("reference-pattern Worker and D1 cache", () => {
       "SELECT response_json,request_json FROM search_cache",
     ).first<any>()
     expect(JSON.stringify(row)).not.toMatch(/fixture-secret|test-token/)
+  })
+  it("reuses TI data for public filters and preserves standard JSON and HTML controls", async () => {
+    const initial = await body("/dcdc_converters/list.json")
+    expect(initial.dcdc_converters[0]).toMatchObject({
+      mfr: "TPS62160DSGR",
+      output_voltage_max: 6,
+      num_pins: 8,
+    })
+    const calls = fetcher.mock.calls.length
+    const matched = await body(
+      "/buck_converters/list.json?output_voltage_max=5",
+    )
+    expect(matched.buck_converters).toHaveLength(1)
+    const excluded = await body("/boost_converters/list.json")
+    expect(excluded.boost_converters).toHaveLength(0)
+    expect(excluded.meta.cached).toBe(true)
+    expect(fetcher).toHaveBeenCalledTimes(calls)
+    const html = await (
+      await get("/buck_converters/list?output_voltage_max=5")
+    ).text()
+    expect(html).toContain('name="output_voltage_max" value="5"')
+    expect(html).toContain(".json?output_voltage_max=5")
+    expect(fetcher).toHaveBeenCalledTimes(calls)
+  })
+  it("does not extend cached TI stock freshness when building a new D1 response", async () => {
+    const expiry = Date.now() + 120_000
+    fetcher.mockImplementation((url: string | URL) => {
+      const response = respond(url)
+      response.headers.set("x-ti-cache-expires-at", String(expiry))
+      return Promise.resolve(response)
+    })
+    const result = await body("/api/search?q=TPS62160DSGR")
+    expect(new Date(result.cache_expires_at).getTime()).toBe(expiry)
   })
   it("uses the reference category-tile homepage without fetching parts", async () => {
     const html = await (await get("/")).text()
@@ -206,7 +246,7 @@ describe("reference-pattern Worker and D1 cache", () => {
       ),
     )
     const r = await get("/api/search?q=TPS62160DSGR")
-    expect(r.status).toBe(503)
+    expect(r.status).toBe(429)
     expect(r.headers.get("retry-after")).toBe("60")
     expect(r.headers.get("cache-control")).toBe("no-store")
     expect(await r.text()).not.toContain("private body")

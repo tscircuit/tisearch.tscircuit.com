@@ -1,3 +1,4 @@
+import { SPEC_FILTERS } from "./jlc-compat"
 import {
   CATEGORY_DEFINITIONS,
   COMMON_FILTERS,
@@ -185,11 +186,17 @@ const renderFilters = (
     category && (url.searchParams.has("q") || url.searchParams.has("search"))
       ? `<input type="hidden" name="q" value="${escapeHtml(payload.query)}" />`
       : ""
-  const preserved = ["num_pins", "pin_count", "lifecycle", "package_code"]
+  const preserved = [
+    "num_pins",
+    "pin_count",
+    "lifecycle",
+    "package_code",
+    ...Object.keys(SPEC_FILTERS),
+  ]
     .filter(
       (name) =>
         url.searchParams.has(name) &&
-        !(category?.filters ?? []).some((f) => f.name === name),
+        !(category?.filters ?? COMMON_FILTERS).some((f) => f.name === name),
     )
     .map(
       (name) =>

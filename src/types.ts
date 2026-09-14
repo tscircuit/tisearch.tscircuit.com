@@ -1,5 +1,7 @@
+import type { TiGateway } from "./ti-gateway"
 export interface Env {
   DB: D1Database
+  TI_GATEWAY?: DurableObjectNamespace<TiGateway>
   TI_CLIENT_ID: string
   TI_CLIENT_SECRET: string
   TI_CURRENCY?: string
@@ -40,6 +42,9 @@ export interface SearchRequest {
 }
 
 export interface NormalizedPart {
+  [key: string]: unknown
+  price1: number | null
+  num_pins: number | null
   ti_product_number: string
   ti_part_number: string
   supplier_part_number: string
@@ -75,6 +80,7 @@ export interface TiProductRecord {
 }
 
 export interface TiSearchResponse {
+  expiresAt?: number
   products: TiProductRecord[]
   upstreamTotal: number
   nextOffset: number | null
@@ -86,6 +92,7 @@ export interface UpstreamSearchResult {
 }
 
 export interface SearchPayload {
+  filter_scope?: "page"
   query: string
   components: NormalizedPart[]
   total: number

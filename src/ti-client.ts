@@ -70,6 +70,7 @@ export class TiClient {
       throw new TiApiError(
         "TI authentication failed",
         response.status >= 300 && response.status < 400 ? 502 : response.status,
+        response.headers.get("retry-after"),
       )
     const data = (await response.json().catch(() => {
       throw new TiApiError("Invalid TI OAuth JSON response", 502)
@@ -94,7 +95,7 @@ export class TiClient {
 
   private async getJson(
     url: URL,
-  ): Promise<{ data: unknown; remaining: number | null }> {
+  ): Promise<{ data: unknown; remaining: number | null; expiresAt?: number }> {
     const token = await this.accessToken()
     const response = await this.fetcher(url, {
       headers: {
@@ -118,16 +119,24 @@ export class TiClient {
       response.headers.get("x-ratelimit-remaining") ??
       response.headers.get("ratelimit-remaining")
     const n = header === null ? NaN : Number(header)
-    return { data, remaining: Number.isSafeInteger(n) && n >= 0 ? n : null }
+    const expiry = Number(response.headers.get("x-ti-cache-expires-at"))
+    return {
+      data,
+      remaining: Number.isSafeInteger(n) && n >= 0 ? n : null,
+      expiresAt: Number.isFinite(expiry) && expiry > 0 ? expiry : undefined,
+    }
   }
 
   async search(request: SearchRequest): Promise<UpstreamSearchResult> {
     const currency = this.env.TI_CURRENCY ?? "USD"
     if (!/^[A-Z]{3}$/.test(currency))
       throw new TiApiError("Invalid TI currency configuration", 503)
+    let expiresAt: number | undefined
     let remaining: number | null = null
     const get = async (url: URL) => {
       const response = await this.getJson(url)
+      if (response.expiresAt)
+        expiresAt = Math.min(expiresAt ?? Infinity, response.expiresAt)
       if (response.remaining !== null)
         remaining =
           remaining === null
@@ -178,7 +187,50 @@ export class TiClient {
       }
       return record
     }
-    const page = request.offset / request.limit
+    // Translate arbitrary public offsets into TI's integer page/size contract.
+    const collection = async (url: URL, info: boolean) => {
+      const pageKey = info ? "Page" : "page"
+      const sizeKey = info ? "Size" : "size"
+      const contentKey = info ? "Content" : "content"
+      const totalKey = info ? "TotalElements" : "totalElements"
+      const page = Math.floor(request.offset / request.limit)
+      const skip = request.offset % request.limit
+      const read = async (index: number) => {
+        url.searchParams.set(pageKey, String(index))
+        url.searchParams.set(sizeKey, String(request.limit))
+        const body = object(await get(new URL(url)))
+        const content = body[contentKey]
+        const total = body[totalKey]
+        if (
+          !Array.isArray(content) ||
+          content.length > request.limit ||
+          typeof total !== "number" ||
+          !Number.isSafeInteger(total) ||
+          total < 0 ||
+          (content.length > 0 && total < index * request.limit + content.length)
+        )
+          throw new TiApiError(
+            info
+              ? "Invalid TI product information page"
+              : "Invalid TI product page",
+            502,
+          )
+        return { content, total }
+      }
+      const first = await read(page)
+      let content = first.content.slice(skip)
+      if (
+        skip &&
+        content.length < request.limit &&
+        (page + 1) * request.limit < first.total
+      ) {
+        const second = await read(page + 1)
+        content = content.concat(
+          second.content.slice(0, request.limit - content.length),
+        )
+      }
+      return { content, total: first.total }
+    }
     let products: TiProductRecord[] = []
     let total: number
     let count: number
@@ -189,6 +241,7 @@ export class TiClient {
         return {
           response: {
             products: request.offset === 0 ? [await enrich({ store })] : [],
+            expiresAt,
             upstreamTotal: 1,
             nextOffset: null,
           },
@@ -200,11 +253,7 @@ export class TiClient {
       // Store V2 supports exact base-part queries, not arbitrary keyword searches.
       const url = storeUrl("")
       url.searchParams.set("gpn", pn)
-      url.searchParams.set("page", String(page))
-      url.searchParams.set("size", String(request.limit))
-      const body = object(await get(url))
-      if (!Array.isArray(body.content) || body.content.length > request.limit)
-        throw new TiApiError("Invalid TI product page", 502)
+      const body = await collection(url, false)
       products = body.content.map((raw) => ({ store: object(raw) }))
       for (const { store } of products) {
         if (
@@ -213,27 +262,29 @@ export class TiClient {
         )
           throw new TiApiError("TI returned a different base part number", 502)
       }
-      total = typeof body.totalElements === "number" ? body.totalElements : NaN
+      total = body.total
       count = body.content.length
     } else {
       const url = new URL("https://transact.ti.com/v1/products")
       url.searchParams.set("ProductFamilyDescription", request.query)
-      url.searchParams.set("Page", String(page))
-      url.searchParams.set("Size", String(request.limit))
       if (request.postFilters.num_pins)
         url.searchParams.set("Pin", request.postFilters.num_pins)
       if (request.postFilters.lifecycle)
-        url.searchParams.set("LifeCycleStatus", request.postFilters.lifecycle)
+        url.searchParams.set(
+          "LifeCycleStatus",
+          request.postFilters.lifecycle.toUpperCase(),
+        )
       if (request.postFilters.package_code)
-        url.searchParams.set("PackageType", request.postFilters.package_code)
-      const body = object(await get(url))
-      if (!Array.isArray(body.Content) || body.Content.length > request.limit)
-        throw new TiApiError("Invalid TI product information page", 502)
-      count = body.Content.length
-      total = typeof body.TotalElements === "number" ? body.TotalElements : NaN
+        url.searchParams.set(
+          "PackageType",
+          request.postFilters.package_code.toUpperCase(),
+        )
+      const body = await collection(url, true)
+      count = body.content.length
+      total = body.total
       // Fetch at most 20 Store listings; each is enriched once below.
       // Product Information's InventoryStatus is explicitly unsupported by TI.
-      for (const raw of body.Content) {
+      for (const raw of body.content) {
         const information = object(raw)
         const pn = validatePartNumber(information.Identifier)
         try {
@@ -256,6 +307,7 @@ export class TiClient {
     return {
       response: {
         products,
+        ...(expiresAt ? { expiresAt } : {}),
         upstreamTotal: total,
         nextOffset:
           count > 0 && request.offset + count < total
