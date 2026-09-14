@@ -16,6 +16,25 @@ const mock = (...responses: Response[]) => {
 }
 
 describe("TI on-demand adapter", () => {
+  it("rejects OAuth and product redirects without forwarding credentials", async () => {
+    for (const stage of ["oauth", "product"]) {
+      const redirect = new Response(null, {
+        status: 302,
+        headers: { location: "https://example.com/redirect" },
+      })
+      const fetcher =
+        stage === "oauth"
+          ? vi.fn().mockResolvedValueOnce(redirect)
+          : mock(redirect)
+      await expect(
+        new TiClient(env, fetcher).search(request("q=NE555P")),
+      ).rejects.toMatchObject({ status: 502 })
+      expect(fetcher).toHaveBeenCalledTimes(stage === "oauth" ? 1 : 2)
+      for (const [, init] of fetcher.mock.calls) {
+        expect(init.redirect).toBe("manual")
+      }
+    }
+  })
   it("uses TI OAuth and encodes the exact /NOPB OPN", async () => {
     const fetcher = mock(Response.json(catalog.catalog[3]))
     const result = await new TiClient(env, fetcher).search(
@@ -37,7 +56,7 @@ describe("TI on-demand adapter", () => {
       "client_secret=c%26d",
     )
     expect(fetcher.mock.calls[1][1]).toMatchObject({
-      redirect: "error",
+      redirect: "manual",
       headers: { authorization: "Bearer secret-token" },
     })
   })

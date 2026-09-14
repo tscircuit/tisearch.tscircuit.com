@@ -224,6 +224,10 @@ const handleSearchRoute = async (
       payload = refreshed.payload
       cacheStatus = "MISS"
     } catch (error) {
+      console.error(
+        "TI refresh failed",
+        error instanceof Error ? error.message : "Unknown error",
+      )
       const apiError =
         error instanceof TiApiError
           ? error

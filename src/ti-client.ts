@@ -53,7 +53,7 @@ export class TiClient {
       "https://transact.ti.com/v1/oauth/accesstoken",
       {
         method: "POST",
-        redirect: "error",
+        redirect: "manual",
         signal: AbortSignal.timeout(30_000),
         headers: {
           "content-type": "application/x-www-form-urlencoded",
@@ -67,7 +67,10 @@ export class TiClient {
       },
     )
     if (!response.ok)
-      throw new TiApiError("TI authentication failed", response.status)
+      throw new TiApiError(
+        "TI authentication failed",
+        response.status >= 300 && response.status < 400 ? 502 : response.status,
+      )
     const data = (await response.json().catch(() => {
       throw new TiApiError("Invalid TI OAuth JSON response", 502)
     })) as {
@@ -100,12 +103,12 @@ export class TiClient {
         "user-agent": TI_USER_AGENT,
       },
       signal: AbortSignal.timeout(30_000),
-      redirect: "error",
+      redirect: "manual",
     })
     if (!response.ok)
       throw new TiApiError(
         "TI product request failed",
-        response.status,
+        response.status >= 300 && response.status < 400 ? 502 : response.status,
         response.headers.get("retry-after"),
       )
     const data = await response.json().catch(() => {

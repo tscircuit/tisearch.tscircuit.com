@@ -105,10 +105,15 @@ bun run build
 ```
 
 Tests use synthetic TI responses and real local D1 migrations/FTS. Live
-credentialed requests and deployment have not been verified. This repository
+TI authentication and a Store inventory/pricing lookup were verified on
+14 September 2026. This repository
 is a search service; it does not add CLI import commands or TSX conversion.
 
 ## Deployment
+
+The Worker and D1 database are configured in the `tscircuit` Cloudflare account
+(`0f355c6f0542dd04cc3fc370c67366a2`). The checked-in D1 ID refers to this
+service’s production database.
 
 Set GitHub Actions secrets `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`,
 configure the D1 ID and Worker secrets above, then set `TI_DEPLOY_ENABLED=true`.
