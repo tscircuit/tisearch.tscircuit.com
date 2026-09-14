@@ -1,0 +1,24 @@
+name = "tisearch"
+account_id = "0f355c6f0542dd04cc3fc370c67366a2"
+main = "src/index.ts"
+compatibility_date = "2025-09-06"
+compatibility_flags = ["nodejs_compat"]
+
+routes = [
+  { pattern = "tisearch.tscircuit.com", custom_domain = true }
+]
+
+[vars]
+TI_CURRENCY = "USD"
+TI_CACHE_TTL_SECONDS = "86400"
+TI_STALE_TTL_SECONDS = "604800"
+TI_MIN_REMAINING = "25"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tisearch"
+database_id = "555e3eac-a06e-4057-9110-93cabcbbaac7"
+migrations_dir = "migrations"
+
+[triggers]
+crons = ["17 */6 * * *"]

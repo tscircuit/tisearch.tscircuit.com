@@ -1,0 +1,305 @@
+import {
+  createExecutionContext,
+  env,
+  waitOnExecutionContext,
+} from "cloudflare:test"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import worker from "../src/index"
+import type { Env } from "../src/types"
+import catalog from "./fixtures/catalog.json"
+
+let runtime: Env
+let fetcher: ReturnType<typeof vi.fn>
+const contexts: ExecutionContext[] = []
+const get = async (path: string, options?: RequestInit) => {
+  const ctx = createExecutionContext()
+  contexts.push(ctx)
+  return worker.fetch(
+    new Request(`https://example.test${path}`, options),
+    runtime,
+    ctx,
+  )
+}
+const drain = async () => {
+  for (const ctx of contexts.splice(0)) await waitOnExecutionContext(ctx)
+}
+const body = async (path: string) => (await (await get(path)).json()) as any
+const respond = (url: string | URL) => {
+  const u = new URL(url)
+  if (u.pathname.includes("oauth"))
+    return Response.json({ access_token: "test-token", expires_in: 3600 })
+  const pn = decodeURIComponent(u.pathname.split("/").at(-1) ?? "")
+  const part = catalog.catalog.find((p) => p.tiPartNumber === pn)
+  if (part) return Response.json(part)
+  if (u.pathname === "/v2/store/products")
+    return Response.json({
+      content: catalog.catalog.slice(0, 2),
+      totalElements: 2,
+    })
+  if (u.pathname === "/v1/products")
+    return Response.json({
+      Content: [
+        {
+          Identifier: "TPS62160DSGR",
+          ProductFamilyDescription: "Buck converters",
+          PackageType: "DSG",
+        },
+      ],
+      TotalElements: 1,
+    })
+  return new Response(null, { status: 404 })
+}
+beforeEach(() => {
+  runtime = {
+    ...env,
+    TI_CLIENT_ID: "fixture-id",
+    TI_CLIENT_SECRET: "fixture-secret",
+  }
+  fetcher = vi
+    .fn()
+    .mockImplementation((url: string | URL) => Promise.resolve(respond(url)))
+  vi.stubGlobal("fetch", fetcher)
+})
+afterEach(async () => {
+  await drain()
+  vi.unstubAllGlobals()
+})
+
+describe("reference-pattern Worker and D1 cache", () => {
+  it("serves home, health, categories and an empty index without upstream calls", async () => {
+    expect(await body("/health")).toEqual({ ok: true })
+    expect(await (await get("/")).text()).toContain("TI In-Stock Parts Engine")
+    expect(
+      (await body("/categories/list.json")).categories.length,
+    ).toBeGreaterThan(5)
+    expect(await body("/api/index/search?q=buck")).toMatchObject({
+      components: [],
+      partial: true,
+      source: "ti-d1-index",
+    })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+  it("fetches on a cold search, then serves a cache hit and learns an FTS part", async () => {
+    const first = await get("/api/search?q=TPS62160DSGR")
+    expect(first.headers.get("x-cache")).toBe("MISS")
+    expect((await first.json()) as any).toMatchObject({
+      cached: false,
+      source: "ti",
+      total: 1,
+      upstream_total: 1,
+    })
+    const calls = fetcher.mock.calls.length
+    expect(
+      (await get("/api/search?q=TPS62160DSGR")).headers.get("x-cache"),
+    ).toBe("HIT")
+    expect(fetcher).toHaveBeenCalledTimes(calls)
+    expect((await body("/api/index/search?q=buck")).components[0].mfr).toBe(
+      "TPS62160DSGR",
+    )
+    expect(
+      (await body("/footprint_index/list.json")).footprints[0],
+    ).toMatchObject({ package: "WSON (DSG)", tscircuit_accepts: false })
+    const row = await env.DB.prepare(
+      "SELECT response_json,request_json FROM search_cache",
+    ).first<any>()
+    expect(JSON.stringify(row)).not.toMatch(/fixture-secret|test-token/)
+  })
+  it("shares simultaneous cold refreshes within the Worker", async () => {
+    const results = await Promise.all([
+      get("/api/search?q=TPS62160DSGR"),
+      get("/api/search?q=TPS62160DSGR"),
+    ])
+    expect(results.every((r) => r.status === 200)).toBe(true)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+  it("returns stale cache immediately and replaces it after background refresh", async () => {
+    await get("/api/search?q=TPS62160DSGR")
+    await env.DB.prepare("UPDATE search_cache SET expires_at=?")
+      .bind(Date.now() - 1)
+      .run()
+    fetcher.mockImplementation((url: string | URL) =>
+      Promise.resolve(
+        String(url).includes("oauth")
+          ? respond(url)
+          : Response.json({ ...catalog.catalog[0], quantity: 999 }),
+      ),
+    )
+    const stale = await get("/api/search?q=TPS62160DSGR")
+    expect(stale.headers.get("x-cache")).toBe("STALE")
+    expect(((await stale.json()) as any).components[0].stock).toBe(1200)
+    await drain()
+    expect((await body("/api/search?q=TPS62160DSGR")).components[0].stock).toBe(
+      999,
+    )
+  })
+  it("retains stale results when refresh is throttled", async () => {
+    await get("/api/search?q=TPS62160DSGR")
+    await env.DB.prepare("UPDATE search_cache SET expires_at=?")
+      .bind(Date.now() - 1)
+      .run()
+    fetcher.mockResolvedValue(new Response("account details", { status: 429 }))
+    expect(
+      (await get("/api/search?q=TPS62160DSGR")).headers.get("x-cache"),
+    ).toBe("STALE")
+    await drain()
+    expect(
+      (
+        await env.DB.prepare(
+          "SELECT response_json FROM search_cache",
+        ).first<any>()
+      ).response_json,
+    ).toContain("1200")
+  })
+  it("forwards Retry-After on a cold throttled response without caching the error", async () => {
+    fetcher.mockImplementation((url: string | URL) =>
+      Promise.resolve(
+        String(url).includes("oauth")
+          ? respond(url)
+          : new Response("private body", {
+              status: 429,
+              headers: { "retry-after": "60" },
+            }),
+      ),
+    )
+    const r = await get("/api/search?q=TPS62160DSGR")
+    expect(r.status).toBe(503)
+    expect(r.headers.get("retry-after")).toBe("60")
+    expect(r.headers.get("cache-control")).toBe("no-store")
+    expect(await r.text()).not.toContain("private body")
+    expect(
+      await env.DB.prepare("SELECT * FROM search_cache").first(),
+    ).toBeNull()
+  })
+  it("preserves category keys, discovered filters and JSON negotiation", async () => {
+    const b = await body("/buck_converters/list.json?package=WSON")
+    expect(b.buck_converters[0].mfr).toBe("TPS62160DSGR")
+    expect(b.meta.filter_options.ParametricFilters.length).toBeGreaterThan(1)
+    expect(
+      (await get("/buck_converters/list?json=true")).headers.get(
+        "content-type",
+      ),
+    ).toContain("application/json")
+    expect(
+      (
+        await get("/buck_converters/list", {
+          headers: { accept: "application/json" },
+        })
+      ).headers.get("content-type"),
+    ).toContain("application/json")
+  })
+  it("learns out-of-stock updates even when filtered out of search results", async () => {
+    await get("/api/search?q=TPS62160DSGR")
+    await env.DB.prepare(
+      "UPDATE search_cache SET expires_at=0, stale_until=0",
+    ).run()
+    fetcher.mockResolvedValue(
+      Response.json({ ...catalog.catalog[0], quantity: 0 }),
+    )
+    expect((await body("/api/search?q=TPS62160DSGR")).components).toHaveLength(
+      0,
+    )
+    expect(
+      (await body("/api/index/search?q=TPS62160DSGR")).components,
+    ).toHaveLength(0)
+  })
+  it("keeps next-page links when all products on a family page are filtered out", async () => {
+    fetcher.mockImplementation((url: string | URL) => {
+      const u = new URL(url)
+      return Promise.resolve(
+        u.pathname === "/v1/products"
+          ? Response.json({
+              Content: [{ Identifier: "TPS62160DSGR" }],
+              TotalElements: 2,
+            })
+          : u.pathname.includes("oauth")
+            ? respond(url)
+            : Response.json({ ...catalog.catalog[0], quantity: 0 }),
+      )
+    })
+    const b = await body("/buck_converters/list.json?limit=1")
+    expect(b.meta).toMatchObject({
+      total: 0,
+      upstream_total: 2,
+      next_offset: 1,
+    })
+    const html = await (await get("/buck_converters/list?limit=1")).text()
+    expect(html).toContain("offset=1")
+    expect(html).toContain("Next")
+  })
+  it("validates input and HTTP methods before upstream access", async () => {
+    for (const path of [
+      "/api/search",
+      "/api/search?q=x&limit=NaN",
+      "/api/index/search?q=x&limit=NaN",
+    ])
+      expect((await get(path)).status).toBe(400)
+    expect((await get("/api/search", { method: "OPTIONS" })).status).toBe(204)
+    expect((await get("/api/search", { method: "POST" })).status).toBe(405)
+    expect((await get("/api/nope")).status).toBe(404)
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+  it("escapes HTML and renders the common table without an import workflow", async () => {
+    const html = await (await get("/components/list?q=TPS62160DSGR")).text()
+    expect(html).toContain("Unit Price @ Qty")
+    expect(html).toContain("Texas Instruments")
+    expect(html).not.toMatch(/CAD|TSX|jlcsearch|EasyEDA/)
+    const escaped = await (
+      await get(
+        "/components/list?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E&mode=family",
+      )
+    ).text()
+    expect(escaped).not.toContain("<script>alert(1)</script>")
+    expect(escaped).toContain("&lt;script&gt;")
+  })
+  it("cron refreshes popular expired queries and stops on reported quota", async () => {
+    await get("/api/search?q=TPS62160DSGR")
+    await get("/api/search?q=TPS62160DSGT")
+    await env.DB.prepare("UPDATE search_cache SET expires_at=0").run()
+    fetcher.mockImplementation((url: string | URL) =>
+      Promise.resolve(
+        Response.json(
+          catalog.catalog.find((p) => String(url).includes(p.tiPartNumber))!,
+          { headers: { "x-ratelimit-remaining": "10" } },
+        ),
+      ),
+    )
+    const previous = fetcher.mock.calls.length
+    const ctx = createExecutionContext()
+    await worker.scheduled({} as ScheduledController, runtime, ctx)
+    await waitOnExecutionContext(ctx)
+    expect(fetcher.mock.calls.length - previous).toBe(1)
+    expect(
+      (
+        await env.DB.prepare(
+          "SELECT count(*) as n FROM search_cache WHERE expires_at=0",
+        ).first<any>()
+      ).n,
+    ).toBe(1)
+  })
+  it("rejects expired cache and excludes excessively old indexed stock", async () => {
+    await get("/api/search?q=TPS62160DSGR")
+    await env.DB.prepare(
+      "UPDATE search_cache SET expires_at=0, stale_until=0",
+    ).run()
+    await env.DB.prepare("UPDATE parts SET updated_at=0").run()
+    fetcher.mockResolvedValue(new Response(null, { status: 503 }))
+    expect((await get("/api/search?q=TPS62160DSGR")).status).toBe(503)
+    expect((await body("/api/index/search?q=buck")).components).toHaveLength(0)
+  })
+  it("bounds scheduled family refresh work within the invocation budget", async () => {
+    await get("/api/search?q=Buck&mode=family")
+    await get("/api/search?q=Boost&mode=family")
+    await get("/api/search?q=Linear&mode=family")
+    await env.DB.prepare("UPDATE search_cache SET expires_at=0").run()
+    const ctx = createExecutionContext()
+    await worker.scheduled({} as ScheduledController, runtime, ctx)
+    await waitOnExecutionContext(ctx)
+    expect(
+      (
+        await env.DB.prepare(
+          "SELECT count(*) as n FROM search_cache WHERE expires_at=0",
+        ).first<any>()
+      ).n,
+    ).toBe(1)
+  })
+})
