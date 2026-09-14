@@ -21,7 +21,7 @@ database_id = "555e3eac-a06e-4057-9110-93cabcbbaac7"
 migrations_dir = "migrations"
 
 [triggers]
-crons = ["17 */6 * * *"]
+crons = ["17 */6 * * *", "*/15 * * * *"]
 
 [[durable_objects.bindings]]
 name = "TI_GATEWAY"

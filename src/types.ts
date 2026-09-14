@@ -80,6 +80,8 @@ export interface TiProductRecord {
 }
 
 export interface TiSearchResponse {
+  inventoryUpdatedAt?: number
+  partial?: boolean
   expiresAt?: number
   products: TiProductRecord[]
   upstreamTotal: number
@@ -92,16 +94,20 @@ export interface UpstreamSearchResult {
 }
 
 export interface SearchPayload {
-  filter_scope?: "page"
+  partial?: boolean
+  warnings?: string[]
+  filter_scope?: "page" | "catalog"
+  last_updated_at?: string | null
+  catalog_complete?: boolean
   query: string
   components: NormalizedPart[]
   total: number
-  upstream_total: number
+  upstream_total: number | null
   limit: number
   offset: number
   next_offset: number | null
   filter_options: TiFilterOptions
-  source: "ti"
+  source: "ti" | "ti-d1-index"
   cached: boolean
   stale: boolean
   cache_expires_at: string

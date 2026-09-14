@@ -211,11 +211,12 @@ describe("TI on-demand adapter", () => {
       )
       if (status === 404)
         expect((await search).response.products[0].parametrics).toEqual({})
-      else
-        await expect(search).rejects.toMatchObject({
-          status: 429,
-          retryAfter: "60",
-        })
+      else {
+        const result = await search
+        expect(result.response.partial).toBe(true)
+        expect(result.response.products[0].store).toEqual(catalog.catalog[0])
+        expect(result.response.products[0].parametrics).toBeUndefined()
+      }
       expect(fetcher).toHaveBeenCalledTimes(3)
     },
   )

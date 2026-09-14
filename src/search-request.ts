@@ -21,6 +21,7 @@ const integer = (
 export const createSearchRequest = (
   url: URL,
   category?: CategoryDefinition,
+  options: { catalog?: boolean } = {},
 ): SearchRequest => {
   const p = url.searchParams
   for (const name of ["is_basic", "is_preferred", "lcsc"]) {
@@ -36,7 +37,11 @@ export const createSearchRequest = (
   )
     .replace(/\s+/g, " ")
     .trim()
-  if (!query || query.length > 200 || !/[\p{L}\p{N}]/u.test(query))
+  if (
+    (!query && !options.catalog) ||
+    query.length > 200 ||
+    (query && !/[\p{L}\p{N}]/u.test(query))
+  )
     throw new SearchInputError(
       "A non-empty q or search parameter of at most 200 characters is required",
     )
@@ -60,8 +65,10 @@ export const createSearchRequest = (
       throw new SearchInputError("Provide one TI orderable or base part number")
     }
   }
-  const limit = integer(p.get("limit"), category ? 5 : 20, 1, 20)
-  const offset = integer(p.get("offset"), 0, 0, 100000)
+  const limit = options.catalog
+    ? 0
+    : integer(p.get("limit"), category ? 5 : 20, 1, 20)
+  const offset = options.catalog ? 0 : integer(p.get("offset"), 0, 0, 100000)
 
   const inStock = p.get("in_stock") || "false"
   if (!["true", "false"].includes(inStock))

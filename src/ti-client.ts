@@ -7,7 +7,7 @@ import type {
 } from "./types"
 
 // TI can reject default HTTP client identities before OAuth validation.
-const TI_USER_AGENT =
+export const TI_USER_AGENT =
   "tisearch.tscircuit.com/0.1 (+https://tisearch.tscircuit.com)"
 
 export class TiApiError extends Error {
@@ -96,10 +96,10 @@ export class TiClient {
   private async getJson(
     url: URL,
   ): Promise<{ data: unknown; remaining: number | null; expiresAt?: number }> {
-    const token = await this.accessToken()
+    const token = this.env.TI_GATEWAY ? undefined : await this.accessToken()
     const response = await this.fetcher(url, {
       headers: {
-        authorization: `Bearer ${token}`,
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
         accept: "application/json",
         "user-agent": TI_USER_AGENT,
       },
@@ -108,7 +108,9 @@ export class TiClient {
     })
     if (!response.ok)
       throw new TiApiError(
-        "TI product request failed",
+        response.status === 429 && response.headers.has("x-ti-throttle-scope")
+          ? `TI ${response.headers.get("x-ti-throttle-scope")} API is rate limited`
+          : "TI product request failed",
         response.status >= 300 && response.status < 400 ? 502 : response.status,
         response.headers.get("retry-after"),
       )
@@ -127,14 +129,85 @@ export class TiClient {
     }
   }
 
+  async discover(family: string, offset: number) {
+    const url = new URL("https://transact.ti.com/v1/products")
+    url.searchParams.set("ProductFamilyDescription", family)
+    url.searchParams.set("Page", String(offset / 100))
+    url.searchParams.set("Size", "100")
+    const { data } = await this.getJson(url)
+    const body = data as { Content?: unknown; TotalElements?: unknown }
+    if (
+      !body ||
+      !Array.isArray(body.Content) ||
+      body.Content.length > 100 ||
+      typeof body.TotalElements !== "number" ||
+      !Number.isSafeInteger(body.TotalElements) ||
+      body.TotalElements < 0 ||
+      (body.Content.length > 0 &&
+        body.TotalElements < offset + body.Content.length)
+    )
+      throw new TiApiError("Invalid TI discovery page", 502)
+    const information = body.Content as Record<string, unknown>[]
+    for (const item of information) validatePartNumber(item?.Identifier)
+    return {
+      information,
+      nextOffset:
+        information.length && offset + information.length < body.TotalElements
+          ? offset + 100
+          : null,
+    }
+  }
+
+  async specifications(partNumber: string) {
+    const pn = validatePartNumber(partNumber)
+    const { data } = await this.getJson(
+      new URL(
+        `https://transact.ti.com/v1/products/${encodeURIComponent(pn)}/parametrics`,
+      ),
+    )
+    if (!data || typeof data !== "object" || Array.isArray(data))
+      throw new TiApiError("Invalid TI parametrics", 502)
+    return data as Record<string, unknown>
+  }
+
+  async inventory(partNumber: string) {
+    const pn = validatePartNumber(partNumber)
+    const url = new URL(
+      `https://transact.ti.com/v2/store/products/${encodeURIComponent(pn)}`,
+    )
+    url.searchParams.set("currency", this.env.TI_CURRENCY ?? "USD")
+    url.searchParams.set("exclude-evms", "true")
+    const response = await this.getJson(url)
+    const store = response.data as Record<string, unknown>
+    if (
+      !store ||
+      typeof store.tiPartNumber !== "string" ||
+      store.tiPartNumber.toUpperCase() !== pn.toUpperCase()
+    )
+      throw new TiApiError("TI returned a different orderable part number", 502)
+    return {
+      store,
+      updatedAt: response.expiresAt
+        ? response.expiresAt - 86400_000
+        : this.now(),
+    }
+  }
+
   async search(request: SearchRequest): Promise<UpstreamSearchResult> {
     const currency = this.env.TI_CURRENCY ?? "USD"
     if (!/^[A-Z]{3}$/.test(currency))
       throw new TiApiError("Invalid TI currency configuration", 503)
+    let inventoryUpdatedAt: number | undefined
+    let partial = false
     let expiresAt: number | undefined
     let remaining: number | null = null
     const get = async (url: URL) => {
       const response = await this.getJson(url)
+      if (url.pathname.startsWith("/v2/store/"))
+        inventoryUpdatedAt = Math.min(
+          inventoryUpdatedAt ?? Infinity,
+          response.expiresAt ? response.expiresAt - 86400_000 : this.now(),
+        )
       if (response.expiresAt)
         expiresAt = Math.min(expiresAt ?? Infinity, response.expiresAt)
       if (response.remaining !== null)
@@ -171,6 +244,7 @@ export class TiClient {
     const enrich = async (
       record: TiProductRecord,
     ): Promise<TiProductRecord> => {
+      if (partial) return record
       const pn = validatePartNumber(record.store.tiPartNumber)
       try {
         record.parametrics = object(
@@ -182,6 +256,13 @@ export class TiClient {
         )
       } catch (error) {
         // TI has no parametric record for some Store listings.
+        if (error instanceof TiApiError && error.status === 429) {
+          // Electrical specs are optional; retain the actual Store stock/prices.
+          // Stop enrichment after throttling rather than repeating failed calls.
+          partial = true
+          expiresAt = Math.min(expiresAt ?? Infinity, this.now() + 3600_000)
+          return record
+        }
         if (!(error instanceof TiApiError) || error.status !== 404) throw error
         record.parametrics = {}
       }
@@ -242,6 +323,8 @@ export class TiClient {
           response: {
             products: request.offset === 0 ? [await enrich({ store })] : [],
             expiresAt,
+            inventoryUpdatedAt,
+            ...(partial ? { partial: true } : {}),
             upstreamTotal: 1,
             nextOffset: null,
           },
@@ -307,6 +390,8 @@ export class TiClient {
     return {
       response: {
         products,
+        ...(inventoryUpdatedAt !== undefined ? { inventoryUpdatedAt } : {}),
+        ...(partial ? { partial: true } : {}),
         ...(expiresAt ? { expiresAt } : {}),
         upstreamTotal: total,
         nextOffset:

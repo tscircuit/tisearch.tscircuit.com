@@ -1,164 +1,116 @@
 # TI Parts Search
 
-Search Texas Instruments parts, browse product families, and check stock,
-pricing, packages, and datasheets.
+Search Texas Instruments parts, browse product families, and check stored
+inventory, pricing, specifications, packages, and datasheets.
 
 **[tisearch.tscircuit.com](https://tisearch.tscircuit.com)**
 
-An unofficial service maintained by tscircuit, powered by TI's official APIs.
-Built with TypeScript, Cloudflare Workers, D1, and a shared Durable Object.
+An unofficial service maintained by tscircuit. Part data comes from TI's official
+APIs and is stored in Cloudflare D1.
 
 ## Searching
 
-- Search an exact orderable part number, such as `TPS62160DSGR`, or a base part
-  number, such as `TPS62160`.
-- Browse categories or search the beginning of a TI product family name, such
-  as `DC/DC converters` or `Comparators`.
-- Filter by inventory, package, pin count, lifecycle, and product parameters.
-- Browse all category shortcuts from the compact homepage.
+Every page and public API request reads the indexed D1 catalog. Opening a page,
+changing filters, or searching never calls TI or queues an upstream refresh.
+TI authentication failures and rate limits therefore cannot block browsing.
 
-Listings include out-of-stock parts by default. Select **In stock** to hide
-parts with zero available inventory. TI groups buck, boost, and buck-boost
-converters under the broader **DC/DC converters** family. The buck, boost, and
-buck-boost URLs apply a topology filter to TI specifications.
+All matching stored parts appear together on one page. There are no Next or
+Previous controls, and legacy listing `limit`/`offset` parameters do not truncate
+results. Electrical filters apply to the full stored category.
 
-## Categories
+Search by orderable part number, base part number, product family, or keywords.
+Listings include out-of-stock parts by default; select **In stock** to hide them.
+Filters include package, pin count, lifecycle, resolution, channels, output
+voltage, memory, and all supplied TI parametric values. Unknown specifications
+do not satisfy a filter. Converter routes also filter by topology.
 
-Browse 66 category links organized into 14 groups: power management, battery
-management, amplifiers, data converters, interface, logic and voltage
-translation, switches and multiplexers, motor drivers, sensors, isolation,
-embedded processing, audio, clocks and timing, and wireless connectivity.
-
-Links use verified TI API family names. Broad topics are split into specific
-families where needed, such as precision/high-speed ADCs, USB hubs/USB-C Power
-Delivery, and individual logic gate types. Some links share an API family;
-for example, analog switches and signal multiplexers. Each page identifies
-its TI family. This is a curated directory, not TI's complete taxonomy.
-
-Category definitions and representative part numbers are in
-`src/category-data.json`. Opening the directory does not call TI; product data
-is loaded only when searching or opening a category, five products at a time.
+The directory contains 66 category links in 14 groups. Some links share the
+same TI family. Definitions are in `src/category-data.json`.
 
 ## API
 
 ```sh
-# Orderable part number
-curl 'https://tisearch.tscircuit.com/api/search?q=TPS62160DSGR'
+# Every stored part in a category
+curl 'https://tisearch.tscircuit.com/dcdc_converters/list.json'
 
-# Base part number
+# Filter the entire stored category
+curl 'https://tisearch.tscircuit.com/dcdc_converters/list.json?output_voltage_max=12'
+
+# Exact/base part or keyword search
 curl 'https://tisearch.tscircuit.com/api/search?q=TPS62160'
+curl 'https://tisearch.tscircuit.com/components/list.json?search=buck'
 
-# Product family, in-stock only
-curl 'https://tisearch.tscircuit.com/dcdc_converters/list.json?in_stock=true'
-
-# Keyword search over previously retrieved in-stock parts
-curl 'https://tisearch.tscircuit.com/api/index/search?q=buck'
+# Compact results for programmatic search clients (limit 1–50, default 10)
+curl 'https://tisearch.tscircuit.com/api/index/search?q=buck&limit=10'
 ```
 
-`/api/search` returns a `components` array with part numbers, descriptions,
-stock, currency, quantity-based price breaks, packages, and product/datasheet
-links. A missing price is `null`. Category endpoints return their category key
-and a `meta` object. Listing pages support `.json`, `?json=true`, or an
-`Accept: application/json` header.
+Listing endpoints support `.json`, `?json=true`, or `Accept: application/json`.
+Category JSON uses its category key; `/api/search` returns `components` directly.
+Metadata reports `source: "ti-d1-index"` and `filter_scope: "catalog"`.
+`total` is the number of matching stored parts, `next_offset` is null, and
+`upstream_total` is null because the local index does not establish TI's current
+total. `catalog_complete: false` means the index is still being populated; it
+must not be interpreted as TI's entire catalog.
 
-Use `mode=part` or `mode=family` to select a search mode explicitly. `limit`
-accepts 1–20 results (default 20 for searches, 5 for categories); `offset`
-accepts any nonnegative integer up to 100000. The adapter converts offsets
-to TI integer pages, fetching a second page only when required. `total` counts matches on the current page;
-`upstream_total` is TI's count before local filtering. Follow `next_offset`
-for subsequent pages, including when filters leave a page empty.
+Parts retain TI identities, stock, currency, price breaks, raw `parametrics`,
+readable `parameters`, and product/datasheet links. `price1` is null unless TI
+quotes quantity one. `inventory_updated_at`, `last_updated_at`, and `stale`
+identify inventory freshness. Older inventory stays visible while background
+refreshes are delayed; it is never relabeled as live data.
 
-Keyword searches use the local index, return `partial: true`, and do not
-search TI's entire catalog. Other endpoints include `/categories/list`,
-`/package_index/list`, and `/health`.
+Other endpoints include `/categories/list`, `/package_index/list`, and `/health`.
 
-Each result includes specifications returned by TI's Product Information
-parametrics endpoint, alongside Store inventory and pricing. The `parameters`
-map contains readable values with units and ranges; `parametrics` preserves
-TI's original specification objects, including descriptions and range bounds.
-Filter dropdowns cover all parameters present on the current page.
+## Storage and background synchronization
 
-A family page makes at most two discovery requests, one Store request per
-product, and one parametrics request per Store listing. Default category pages
-remain limited to five products; cached searches make no upstream requests.
-TI listings without parametric records still appear with their available
-package information. An upstream rate-limit response stops the refresh.
+- **D1** stores normalized parts, specifications, prices, and inventory. FTS5
+  indexes keyword searches; category, orderable/base part, and freshness indexes
+  support catalog reads and refresh selection. Existing stored parts are retained
+  when applying migrations.
+- **Scheduled discovery**, every six hours, queues up to 100 family products
+  with one metadata request. A D1 cursor and lease preserve progress across runs. Successful runs
+  advance the cursor; throttled runs retain data and back off. A completed family
+  is revisited after 30 days.
+- **Scheduled inventory refresh**, every 15 minutes, updates up to 20 of the
+  pending imports or oldest listings whose inventory is at least 24 hours old. It uses the Store
+  API only and preserves indexed specifications. Failed refreshes retain the
+  last successful inventory timestamp.
+- **Scheduled specification refresh**, every six hours, enriches up to five
+  indexed parts whose specifications have not been checked in 30 days. Inventory
+  timestamps are preserved.
+- **TiGateway**, a shared Durable Object, authenticates only for cache misses,
+  spaces uncached calls, and honours independent TI API cooldowns. Product
+  Information metadata is cached for 30 days and Store inventory for 24 hours.
+  Tokens are kept only in memory.
 
-Named filters include `resolution_bits`, `num_channels`, `channel_count`,
-`output_type`, `output_voltage`, `output_voltage_min`, `output_voltage_max`,
-`core`, `flash_min`, and `ram_min`. Pin count becomes TI's `Pin`,
-`package_code` becomes `PackageType`, and lifecycle becomes `LifeCycleStatus`.
-Electrical filters run locally against TI parametrics; they are not sent as
-unsupported query parameters to TI. Filters apply to the fetched page, not
-TI's entire catalog. Missing specifications do not match a filter.
+Only these scheduled jobs contact TI. Public searches cannot exhaust TI quota.
+TI's [published limits](https://www.ti.com/developer-api/store-api/reference/response-codes-rate-limits.html)
+include 2,000 Product Information requests per month, so discovery is deliberately
+bounded. Quota exhaustion can delay new imports, but existing pages remain
+available from D1.
 
-`output_voltage_min` selects parts with a rated minimum at or below the
-requested value; `output_voltage_max` selects parts with a rated maximum at
-or above it. Memory thresholds use bytes. Responses include normalized
-numeric fields, `num_pins`, and `price1` (null unless TI quotes quantity one).
-`subcategory_name` accepts the configured category names. Compatibility routes
-include `/voltage_regulators/list.json` (key `regulators`),
-`/analog_multiplexers/list.json`, and `/microcontrollers/list.json`.
-Supplier inventory flags `is_basic`, `is_preferred`, and `lcsc` are unavailable
-for TI and return a validation error.
+## Development and deployment
 
-## Data freshness
-
-Results are cached for 24 hours. Expired results may be served for seven more
-days while refreshing in the background; responses include `cached`, `stale`,
-and `cache_expires_at` metadata. A scheduled job refreshes popular expired
-queries every six hours with bounded requests and throttling checks.
-
-The `TiGateway` Durable Object shares raw TI responses across all Worker
-instances and query/filter variants. Uncached requests are serialized at
-most twice per second. On HTTP 429 it persists a cooldown of at least 60
-seconds (or longer when TI supplies `Retry-After`) and makes no automatic
-retries. Cached URLs remain available during the cooldown. A cold throttled
-request returns HTTP 429 with `Retry-After`, rather than a misleading 503.
-OAuth tokens are shared only in memory; credentials and tokens are never
-written to the gateway's persistent storage.
-
-Gateway responses expire after 24 hours, with one-hour negative caching for
-missing products. D1 freshness never extends beyond its source responses'
-expiry. Expired gateway entries are cleaned up daily.
-
-The homepage and category directory do not call TI. Stock and prices can
-change between refreshes.
-
-## Local development
-
-Requires Bun and TI credentials with access to the Store inventory/pricing API
-and Product Information API.
+Requires Bun. TI credentials are needed for background synchronization, not for
+reading an already populated local catalog.
 
 ```sh
 bun install
 cp .dev.vars.example .dev.vars
-# Set TI_CLIENT_ID and TI_CLIENT_SECRET in .dev.vars.
+# Configure TI_CLIENT_ID and TI_CLIENT_SECRET for synchronization.
 bun run db:migrate
 bun run dev
-```
 
-Run checks with:
-
-```sh
 bun run test
 bun run typecheck
 bun run format:check
 bun run build
 ```
 
-`bun run build` performs a Worker dry run. Tests use fixtures and a local D1
-database; they do not call TI's APIs.
+Tests use fixture data and local Cloudflare storage; they do not contact TI.
 
-## Deployment
-
-`wrangler.toml` configures the production Worker, domain, D1 database, Durable
-Object binding/migration, and
-scheduled refresh in the tscircuit Cloudflare account. For a separate
-installation, create a D1 database with `bun x wrangler d1 create tisearch`
-and update the account, database, and domain configuration first.
-
-Store credentials as Worker secrets, then apply migrations and deploy:
+`wrangler.toml` configures the Worker, D1 database, Durable Object, domain, and
+cron schedules in the tscircuit Cloudflare account. Deployment applies additive
+D1 migrations before publishing the Worker:
 
 ```sh
 bun x wrangler secret put TI_CLIENT_ID
@@ -166,11 +118,11 @@ bun x wrangler secret put TI_CLIENT_SECRET
 bun run deploy
 ```
 
-The optional GitHub Actions deployment workflow requires the
-`CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` repository secrets and the
-`TI_DEPLOY_ENABLED=true` repository variable.
+For another installation, create its D1 database and update the account, database,
+and domain configuration. The optional GitHub Actions deployment workflow uses
+`CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, and `TI_DEPLOY_ENABLED=true`.
 
 ## License
 
-The source code is licensed under the [MIT License](LICENSE).
+Source code is licensed under the [MIT License](LICENSE).
 TI product data is subject to [TI's API terms](https://www.ti.com/developer-api/store-api/reference/api-terms-of-use.html).

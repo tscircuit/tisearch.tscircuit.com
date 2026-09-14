@@ -1,10 +1,12 @@
 import { DurableObject } from "cloudflare:workers"
+import { TI_USER_AGENT } from "./ti-client"
 import type { Env } from "./types"
 
 interface Entry {
   body: string
   status: number
   expiresAt: number
+  fetchedAt?: number
 }
 
 // All isolates use one object: URL cache, pacing and cooldown are account-wide.
@@ -28,6 +30,11 @@ export class TiGateway extends DurableObject<Env> {
   }
 
   private async forward(request: Request, oauth: boolean): Promise<Response> {
+    const scope = oauth
+      ? "oauth"
+      : new URL(request.url).pathname.startsWith("/v2/")
+        ? "store"
+        : "information"
     const requestBody = oauth ? await request.clone().text() : ""
     if (
       oauth &&
@@ -45,6 +52,17 @@ export class TiGateway extends DurableObject<Env> {
     const key = `response:${request.url}`
     const cached = oauth ? undefined : await this.ctx.storage.get<Entry>(key)
     const now = Date.now()
+    // Retain previously fetched static metadata when upgrading the one-day cache.
+    if (
+      cached &&
+      scope === "information" &&
+      cached.status === 200 &&
+      !cached.fetchedAt
+    ) {
+      cached.fetchedAt = cached.expiresAt - 86400_000
+      cached.expiresAt = cached.fetchedAt + 30 * 86400_000
+      await this.ctx.storage.put(key, cached)
+    }
     if (cached && cached.expiresAt > now)
       return new Response(cached.body, {
         status: cached.status,
@@ -53,12 +71,50 @@ export class TiGateway extends DurableObject<Env> {
           "x-ti-cache-expires-at": String(cached.expiresAt),
         },
       })
-    const cooldown = (await this.ctx.storage.get<number>("cooldown")) ?? 0
-    if (cooldown > now) return this.throttled(cooldown)
+    const cooldown = Math.max(
+      (await this.ctx.storage.get<number>(`cooldown:${scope}`)) ?? 0,
+      (await this.ctx.storage.get<number>("cooldown")) ?? 0,
+    )
+    if (cooldown > now) return this.throttled(cooldown, scope)
+    // Production callers send no token: authentication happens only on a cache miss.
+    if (!oauth && !request.headers.has("authorization")) {
+      if (!this.env.TI_CLIENT_ID || !this.env.TI_CLIENT_SECRET)
+        return Response.json(
+          { error: "TI credentials are not configured" },
+          { status: 503 },
+        )
+      const auth = await this.forward(
+        new Request("https://transact.ti.com/v1/oauth/accesstoken", {
+          method: "POST",
+          headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            "user-agent": TI_USER_AGENT,
+          },
+          body: new URLSearchParams({
+            grant_type: "client_credentials",
+            client_id: this.env.TI_CLIENT_ID,
+            client_secret: this.env.TI_CLIENT_SECRET,
+          }),
+        }),
+        true,
+      )
+      if (!auth.ok) return auth
+      const data = (await auth.json()) as { access_token?: unknown }
+      if (typeof data.access_token !== "string" || !data.access_token)
+        return Response.json(
+          { error: "Invalid TI OAuth response" },
+          { status: 502 },
+        )
+      const headers = new Headers(request.headers)
+      headers.set("authorization", `Bearer ${data.access_token}`)
+      request = new Request(request, { headers })
+    }
     const nextRequest =
       (await this.ctx.storage.get<number>("next-request")) ?? 0
-    if (nextRequest > now)
-      await new Promise((resolve) => setTimeout(resolve, nextRequest - now))
+    if (nextRequest > Date.now())
+      await new Promise((resolve) =>
+        setTimeout(resolve, nextRequest - Date.now()),
+      )
     // Two calls per second, including OAuth, below TI's five/second ceiling.
     await this.ctx.storage.put("next-request", Date.now() + 500)
     const response = await fetch(request, {
@@ -77,9 +133,23 @@ export class TiGateway extends DurableObject<Env> {
             ? date
             : 0,
       )
-      await this.ctx.storage.put("cooldown", until)
+      await this.ctx.storage.put(`cooldown:${scope}`, until)
+      const detail = (await response
+        .clone()
+        .json()
+        .catch(() => null)) as {
+        fault?: { detail?: { errorcode?: string } }
+      } | null
+      console.warn("TI throttle", {
+        scope,
+        path: new URL(request.url).pathname,
+        retryAfter: raw,
+        code: detail?.fault?.detail?.errorcode ?? null,
+        remaining: response.headers.get("x-ratelimit-remaining"),
+        limit: response.headers.get("x-ratelimit-limit"),
+      })
       await response.body?.cancel()
-      return this.throttled(until)
+      return this.throttled(until, scope)
     }
     if (oauth && response.ok) {
       const body = await response.text()
@@ -112,12 +182,19 @@ export class TiGateway extends DurableObject<Env> {
       const headers = new Headers(response.headers)
       if (valid) {
         const expiresAt =
-          Date.now() + (response.status === 404 ? 3600 : 86400) * 1000
+          Date.now() +
+          (response.status === 404
+            ? 3600
+            : scope === "information"
+              ? 30 * 86400
+              : 86400) *
+            1000
         headers.set("x-ti-cache-expires-at", String(expiresAt))
         await this.ctx.storage.put(key, {
           body,
           status: response.status,
           expiresAt,
+          fetchedAt: Date.now(),
         } satisfies Entry)
         if (!(await this.ctx.storage.getAlarm()))
           await this.ctx.storage.setAlarm(Date.now() + 86400_000)
@@ -130,12 +207,19 @@ export class TiGateway extends DurableObject<Env> {
     return response
   }
 
-  private throttled(until: number) {
+  private throttled(until: number, scope: string) {
+    console.info("TI cooldown", {
+      scope,
+      retryAfter: Math.max(1, Math.ceil((until - Date.now()) / 1000)),
+    })
     return Response.json(
-      { error: "TI is rate limited; cached requests remain available" },
+      {
+        error: `TI ${scope} is rate limited; cached requests remain available`,
+      },
       {
         status: 429,
         headers: {
+          "x-ti-throttle-scope": scope,
           "retry-after": String(
             Math.max(1, Math.ceil((until - Date.now()) / 1000)),
           ),
