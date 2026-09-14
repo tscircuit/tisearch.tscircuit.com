@@ -1,0 +1,464 @@
+[
+  {
+    "key": "dcdc_converters",
+    "label": "DC/DC converters",
+    "group": "Power management",
+    "family": "DC/DC converters",
+    "examplePartNumber": "TPS62160"
+  },
+  {
+    "key": "ldos",
+    "label": "Linear & LDO regulators",
+    "group": "Power management",
+    "family": "Linear & low-dropout (LDO) regulators",
+    "examplePartNumber": "TPS7A02"
+  },
+  {
+    "key": "load_switches",
+    "label": "Load switches",
+    "group": "Power management",
+    "family": "Load switches",
+    "examplePartNumber": "TPS22918"
+  },
+  {
+    "key": "power_protection",
+    "label": "eFuses / power protection",
+    "group": "Power management",
+    "family": "eFuses (integrated hot swaps)",
+    "examplePartNumber": "TPS25940"
+  },
+  {
+    "key": "voltage_references",
+    "label": "Shunt voltage references",
+    "group": "Power management",
+    "family": "Shunt voltage references",
+    "examplePartNumber": "LM4040"
+  },
+  {
+    "key": "supervisors",
+    "label": "Supervisor & reset ICs",
+    "group": "Power management",
+    "family": "Reset & watchdog ICs",
+    "examplePartNumber": "TPS3808"
+  },
+  {
+    "key": "led_drivers",
+    "label": "RGB LED drivers",
+    "group": "Power management",
+    "family": "RGB LED drivers",
+    "examplePartNumber": "TLC5940"
+  },
+  {
+    "key": "led_backlight_drivers",
+    "label": "LED backlight drivers",
+    "group": "Power management",
+    "family": "Backlight LED drivers",
+    "examplePartNumber": "TPS61165"
+  },
+  {
+    "key": "gate_drivers",
+    "label": "Low-side gate drivers",
+    "group": "Power management",
+    "family": "Low-side drivers",
+    "examplePartNumber": "UCC27511"
+  },
+  {
+    "key": "half_bridge_drivers",
+    "label": "Half-bridge gate drivers",
+    "group": "Power management",
+    "family": "Half-bridge drivers",
+    "examplePartNumber": "UCC27211"
+  },
+  {
+    "key": "battery_chargers",
+    "label": "Battery chargers",
+    "group": "Battery management",
+    "family": "Battery charger ICs",
+    "examplePartNumber": "BQ24074"
+  },
+  {
+    "key": "fuel_gauges",
+    "label": "Battery fuel gauges",
+    "group": "Battery management",
+    "family": "Battery fuel gauges",
+    "examplePartNumber": "BQ27441-G1"
+  },
+  {
+    "key": "battery_monitors",
+    "label": "Battery monitors",
+    "group": "Battery management",
+    "family": "Battery monitors & balancers",
+    "examplePartNumber": "BQ76952"
+  },
+  {
+    "key": "battery_protection",
+    "label": "Battery protection",
+    "group": "Battery management",
+    "family": "Battery protectors",
+    "examplePartNumber": "BQ2970"
+  },
+  {
+    "key": "general_purpose_op_amps",
+    "label": "General-purpose op amps",
+    "group": "Amplifiers",
+    "family": "General-purpose op amps",
+    "examplePartNumber": "LM358"
+  },
+  {
+    "key": "precision_op_amps",
+    "label": "Precision op amps",
+    "group": "Amplifiers",
+    "family": "Precision op amps (Vos<1mV)",
+    "examplePartNumber": "OPA188"
+  },
+  {
+    "key": "comparators",
+    "label": "Comparators",
+    "group": "Amplifiers",
+    "family": "Comparators",
+    "examplePartNumber": "LM393"
+  },
+  {
+    "key": "current_sense_amplifiers",
+    "label": "Current-sense amplifiers",
+    "group": "Amplifiers",
+    "family": "Analog current-sense amplifiers",
+    "examplePartNumber": "INA180"
+  },
+  {
+    "key": "instrumentation_amplifiers",
+    "label": "Instrumentation amplifiers",
+    "group": "Amplifiers",
+    "family": "Instrumentation amplifiers",
+    "examplePartNumber": "INA826"
+  },
+  {
+    "key": "adcs",
+    "label": "Precision ADCs",
+    "group": "Data converters",
+    "family": "Precision ADCs",
+    "examplePartNumber": "ADS1115"
+  },
+  {
+    "key": "high_speed_adcs",
+    "label": "High-speed ADCs",
+    "group": "Data converters",
+    "family": "High-speed ADCs (≥10 MSPS)",
+    "examplePartNumber": "ADS54J60"
+  },
+  {
+    "key": "dacs",
+    "label": "Precision DACs",
+    "group": "Data converters",
+    "family": "Precision DACs (≤10 MSPS)",
+    "examplePartNumber": "DAC60501"
+  },
+  {
+    "key": "high_speed_dacs",
+    "label": "High-speed DACs",
+    "group": "Data converters",
+    "family": "High-speed DACs (>10 MSPS)",
+    "examplePartNumber": "DAC38J84"
+  },
+  {
+    "key": "can_transceivers",
+    "label": "CAN transceivers",
+    "group": "Interface",
+    "family": "CAN transceivers",
+    "examplePartNumber": "TCAN1042H"
+  },
+  {
+    "key": "rs485_transceivers",
+    "label": "RS-485 & RS-422 transceivers",
+    "group": "Interface",
+    "family": "RS-485 & RS-422 transceivers",
+    "examplePartNumber": "THVD1450"
+  },
+  {
+    "key": "rs232_transceivers",
+    "label": "RS-232 transceivers",
+    "group": "Interface",
+    "family": "RS-232 transceivers",
+    "examplePartNumber": "MAX3232"
+  },
+  {
+    "key": "usb_ics",
+    "label": "USB hubs",
+    "group": "Interface",
+    "family": "USB hubs",
+    "examplePartNumber": "TUSB2046B"
+  },
+  {
+    "key": "usb_power_delivery",
+    "label": "USB Type-C & Power Delivery",
+    "group": "Interface",
+    "family": "USB-C Power Delivery controllers",
+    "examplePartNumber": "TPS65987D"
+  },
+  {
+    "key": "ethernet_ics",
+    "label": "Ethernet PHYs",
+    "group": "Interface",
+    "family": "Ethernet PHYs",
+    "examplePartNumber": "DP83848C"
+  },
+  {
+    "key": "i2c_spi_ics",
+    "label": "I2C / I3C switches & multiplexers",
+    "group": "Interface",
+    "family": "I2C & I3C switches & multiplexers",
+    "examplePartNumber": "TCA9548A"
+  },
+  {
+    "key": "spi_translators",
+    "label": "Voltage translators for SPI",
+    "group": "Interface",
+    "family": "Voltage translators",
+    "examplePartNumber": "SN74AVC4T774"
+  },
+  {
+    "key": "logic_gates",
+    "label": "AND gates",
+    "group": "Logic & voltage translation",
+    "family": "AND gates",
+    "examplePartNumber": "SN74LVC1G08"
+  },
+  {
+    "key": "or_gates",
+    "label": "OR gates",
+    "group": "Logic & voltage translation",
+    "family": "OR gates",
+    "examplePartNumber": "SN74LVC1G32"
+  },
+  {
+    "key": "nand_gates",
+    "label": "NAND gates",
+    "group": "Logic & voltage translation",
+    "family": "NAND gates",
+    "examplePartNumber": "SN74LVC1G00"
+  },
+  {
+    "key": "nor_gates",
+    "label": "NOR gates",
+    "group": "Logic & voltage translation",
+    "family": "NOR gates",
+    "examplePartNumber": "SN74LVC1G02"
+  },
+  {
+    "key": "xor_gates",
+    "label": "XOR gates",
+    "group": "Logic & voltage translation",
+    "family": "XOR (exclusive OR) gates",
+    "examplePartNumber": "SN74LVC1G86"
+  },
+  {
+    "key": "inverters",
+    "label": "Inverters",
+    "group": "Logic & voltage translation",
+    "family": "Inverting buffers & drivers",
+    "examplePartNumber": "SN74LVC1G04"
+  },
+  {
+    "key": "buffers",
+    "label": "Noninverting buffers & drivers",
+    "group": "Logic & voltage translation",
+    "family": "Noninverting buffers & drivers",
+    "examplePartNumber": "SN74LVC1G125"
+  },
+  {
+    "key": "flip_flops",
+    "label": "D-type flip-flops",
+    "group": "Logic & voltage translation",
+    "family": "D-type flip-flops",
+    "examplePartNumber": "SN74LVC1G74"
+  },
+  {
+    "key": "level_translators",
+    "label": "Level translators",
+    "group": "Logic & voltage translation",
+    "family": "Voltage translators",
+    "examplePartNumber": "TXS0108E"
+  },
+  {
+    "key": "analog_switches",
+    "label": "Analog switches & muxes",
+    "group": "Switches & multiplexers",
+    "family": "Analog & precision switches & muxes",
+    "examplePartNumber": "TS5A3159"
+  },
+  {
+    "key": "signal_multiplexers",
+    "label": "Signal multiplexers & switches",
+    "group": "Switches & multiplexers",
+    "family": "Analog & precision switches & muxes",
+    "examplePartNumber": "TMUX1208"
+  },
+  {
+    "key": "brushed_dc_drivers",
+    "label": "Brushed DC motor drivers",
+    "group": "Motor drivers",
+    "family": "Brushed DC (BDC) motor drivers",
+    "examplePartNumber": "DRV8871"
+  },
+  {
+    "key": "brushless_dc_drivers",
+    "label": "Brushless DC motor drivers",
+    "group": "Motor drivers",
+    "family": "BLDC drivers",
+    "examplePartNumber": "DRV8313"
+  },
+  {
+    "key": "stepper_drivers",
+    "label": "Stepper motor drivers",
+    "group": "Motor drivers",
+    "family": "Stepper motor drivers",
+    "examplePartNumber": "DRV8825"
+  },
+  {
+    "key": "temperature_sensors",
+    "label": "Digital temperature sensors",
+    "group": "Sensors",
+    "family": "Digital temperature sensors",
+    "examplePartNumber": "TMP117"
+  },
+  {
+    "key": "analog_temperature_sensors",
+    "label": "Analog temperature sensors",
+    "group": "Sensors",
+    "family": "Analog temperature sensors",
+    "examplePartNumber": "LM35"
+  },
+  {
+    "key": "magnetic_sensors",
+    "label": "Hall-effect latches & switches",
+    "group": "Sensors",
+    "family": "Hall-effect latches & switches",
+    "examplePartNumber": "DRV5032"
+  },
+  {
+    "key": "linear_hall_sensors",
+    "label": "Linear Hall-effect sensors",
+    "group": "Sensors",
+    "family": "Linear Hall-effect sensors",
+    "examplePartNumber": "DRV5055"
+  },
+  {
+    "key": "digital_isolators",
+    "label": "Digital isolators",
+    "group": "Isolation",
+    "family": "Digital isolators",
+    "examplePartNumber": "ISO7741"
+  },
+  {
+    "key": "isolated_amplifiers",
+    "label": "Isolated amplifiers",
+    "group": "Isolation",
+    "family": "Isolated amplifiers",
+    "examplePartNumber": "AMC1301"
+  },
+  {
+    "key": "isolated_gate_drivers",
+    "label": "Isolated gate drivers",
+    "group": "Isolation",
+    "family": "Isolated gate drivers",
+    "examplePartNumber": "UCC21520"
+  },
+  {
+    "key": "general_purpose_mcus",
+    "label": "General-purpose MCUs",
+    "group": "Embedded processing",
+    "family": "General-purpose MCUs",
+    "examplePartNumber": "MSPM0G3507"
+  },
+  {
+    "key": "low_power_mcus",
+    "label": "Low-power MCUs",
+    "group": "Embedded processing",
+    "family": "Low-power MCUs",
+    "examplePartNumber": "MSP430FR2355"
+  },
+  {
+    "key": "real_time_mcus",
+    "label": "Real-time digital power MCUs",
+    "group": "Embedded processing",
+    "family": "Real-time digital power MCUs",
+    "examplePartNumber": "TMS320F280049C"
+  },
+  {
+    "key": "audio_amplifiers",
+    "label": "Speaker & audio amplifiers",
+    "group": "Audio",
+    "family": "Speaker, TV & soundbar audio amplifiers",
+    "examplePartNumber": "TPA3116D2"
+  },
+  {
+    "key": "audio_adcs",
+    "label": "Audio ADCs",
+    "group": "Audio",
+    "family": "Audio ADCs",
+    "examplePartNumber": "PCM1808"
+  },
+  {
+    "key": "audio_dacs",
+    "label": "Audio DACs",
+    "group": "Audio",
+    "family": "Audio DACs",
+    "examplePartNumber": "PCM5102A"
+  },
+  {
+    "key": "audio_codecs",
+    "label": "Audio codecs",
+    "group": "Audio",
+    "family": "Audio CODECs",
+    "examplePartNumber": "TLV320AIC3104"
+  },
+  {
+    "key": "timers",
+    "label": "Timers",
+    "group": "Clocks & timing",
+    "family": "Real-time clocks (RTCs) & timers",
+    "examplePartNumber": "NE555"
+  },
+  {
+    "key": "clock_buffers",
+    "label": "Clock buffers",
+    "group": "Clocks & timing",
+    "family": "Clock buffers",
+    "examplePartNumber": "CDCLVC1104"
+  },
+  {
+    "key": "clock_generators",
+    "label": "Clock generators",
+    "group": "Clocks & timing",
+    "family": "Clock generators",
+    "examplePartNumber": "CDCE6214"
+  },
+  {
+    "key": "bluetooth",
+    "label": "Bluetooth LE / 2.4 GHz wireless",
+    "group": "Wireless connectivity",
+    "family": "Low-power 2.4-GHz products",
+    "examplePartNumber": "CC2642R"
+  },
+  {
+    "key": "wifi",
+    "label": "Wi-Fi",
+    "group": "Wireless connectivity",
+    "family": "Wi-Fi products",
+    "examplePartNumber": "CC3235SF"
+  },
+  {
+    "key": "sub1ghz",
+    "label": "Sub-1 GHz wireless",
+    "group": "Wireless connectivity",
+    "family": "Sub-1 GHz wireless MCUs",
+    "examplePartNumber": "CC1312R"
+  },
+  {
+    "key": "rf_transceivers",
+    "label": "RF transceivers",
+    "group": "Wireless connectivity",
+    "family": "RF transceivers",
+    "examplePartNumber": "AFE7799"
+  }
+]

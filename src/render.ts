@@ -88,20 +88,24 @@ button { @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-3 r
 </html>`
 
 export const renderHomePage = (parts: NormalizedPart[] = []): string => {
-  const links = [
-    { path: "/categories/list", label: "Categories" },
-    { path: "/footprint_index/list", label: "Package Index" },
-    ...CATEGORY_DEFINITIONS,
-  ]
+  const groups = [...new Set(CATEGORY_DEFINITIONS.map((c) => c.group))]
+  const links = groups
     .map(
-      ({ path, label }) =>
-        `<a href="${escapeHtml(path)}">${escapeHtml(label)}</a>`,
+      (group) => `<section class="border border-gray-200 rounded p-3">
+    <h2>${escapeHtml(group)}</h2><ul class="space-y-1">${CATEGORY_DEFINITIONS.filter(
+      (c) => c.group === group,
+    )
+      .map(
+        ({ path, label }) =>
+          `<li><a href="${escapeHtml(path)}">${escapeHtml(label)}</a></li>`,
+      )
+      .join("")}</ul></section>`,
     )
     .join("")
 
   return renderShell(
     "/",
-    `<div><div class="flex flex-wrap gap-4 *:text-lg *:border *:rounded *:p-2 *:border-gray-300 *:w-32 *:text-sm *:text-center">${links}</div><h2>Recently retrieved parts</h2><p>Cached TI stock and pricing from the last 24 hours. Browse a category or search a part number to find more.</p>${parts.length ? renderPartsTable(parts) : "<p>No parts retrieved yet. Select a category above to load parts from TI.</p>"}</div>`,
+    `<div><p class="my-2"><a href="/categories/list">All categories</a> · <a href="/footprint_index/list">Package index</a></p><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">${links}</div><h2>Recently retrieved parts</h2><p>Cached TI stock and pricing from the last 24 hours. Browse a category or search a part number to find more.</p>${parts.length ? renderPartsTable(parts) : "<p>No parts retrieved yet. Select a category above to load parts from TI.</p>"}</div>`,
   )
 }
 
@@ -258,7 +262,7 @@ export const renderSearchPage = (
   const paging = `<div class="my-2">${payload.offset > 0 ? pageLink(Math.max(0, payload.offset - payload.limit), "Previous") : ""}${payload.next_offset !== null ? pageLink(payload.next_offset, "Next") : ""}</div>`
   return renderShell(
     pathname,
-    `<div><h2>${escapeHtml(label)}</h2>${renderFilters(category, payload, url)}<div class="my-1">${freshness} ${payload.total.toLocaleString("en-US")} matching products on this page.</div><p class="text-gray-600 my-1">Search by exact or base part number, or the beginning of a TI product family name. Stock and filters apply to each page.</p><div class="overflow-x-auto">${renderPartsTable(payload.components)}</div>${paging}</div>`,
+    `<div><h2>${escapeHtml(label)}</h2>${category ? `<p class="my-1">TI family: ${escapeHtml(category.query)}. This page covers that API family; some related devices have separate categories.</p>` : ""}${renderFilters(category, payload, url)}<div class="my-1">${freshness} ${payload.total.toLocaleString("en-US")} matching products on this page.</div><p class="text-gray-600 my-1">Search by exact or base part number, or the beginning of a TI product family name. Stock and filters apply to each page.</p><div class="overflow-x-auto">${renderPartsTable(payload.components)}</div>${paging}</div>`,
     `${label} - TI Parts Search`,
     requestUrl,
   )

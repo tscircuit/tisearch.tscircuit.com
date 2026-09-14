@@ -21,6 +21,23 @@ Listings include out-of-stock parts by default. Select **In stock** to hide
 parts with zero available inventory. TI groups buck, boost, and buck-boost
 converters under the broader **DC/DC converters** family.
 
+## Categories
+
+Browse 66 category links organized into 14 groups: power management, battery
+management, amplifiers, data converters, interface, logic and voltage
+translation, switches and multiplexers, motor drivers, sensors, isolation,
+embedded processing, audio, clocks and timing, and wireless connectivity.
+
+Links use verified TI API family names. Broad topics are split into specific
+families where needed, such as precision/high-speed ADCs, USB hubs/USB-C Power
+Delivery, and individual logic gate types. Some links share an API family;
+for example, analog switches and signal multiplexers. Each page identifies
+its TI family. This is a curated directory, not TI's complete taxonomy.
+
+Category definitions and representative part numbers are in
+`src/category-data.json`. Opening the directory does not call TI; product data
+is loaded only when searching or opening a category, five products at a time.
+
 ## API
 
 ```sh

@@ -5,6 +5,7 @@ import {
 } from "cloudflare:test"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import worker from "../src/index"
+import { CATEGORY_DEFINITIONS } from "../src/categories"
 import type { Env } from "../src/types"
 import catalog from "./fixtures/catalog.json"
 
@@ -78,6 +79,41 @@ describe("reference-pattern Worker and D1 cache", () => {
       source: "ti-d1-index",
     })
     expect(fetcher).not.toHaveBeenCalled()
+  })
+  it("lists all grouped categories without fetching TI and routes each family with a five-product cap", async () => {
+    const home = await (await get("/")).text()
+    const listing = await body("/categories/list.json")
+    expect(new Set(listing.categories.map((c: any) => c.group)).size).toBe(14)
+    for (const category of CATEGORY_DEFINITIONS) {
+      expect(home).toContain(`href="${category.path}"`)
+      expect(listing.categories).toContainEqual({
+        group: category.group,
+        category: category.label,
+        subcategory: category.query,
+        path: category.path,
+      })
+    }
+    expect(fetcher).not.toHaveBeenCalled()
+    fetcher.mockImplementation((url: string | URL) =>
+      Promise.resolve(
+        new URL(url).pathname.includes("oauth")
+          ? respond(url)
+          : Response.json({ Content: [], TotalElements: 0 }),
+      ),
+    )
+    for (const category of CATEGORY_DEFINITIONS) {
+      const r = await get(`${category.path}.json`)
+      expect(r.status).toBe(200)
+      const result = (await r.json()) as any
+      expect(result[category.responseKey]).toEqual([])
+      expect(result.meta.limit).toBe(5)
+      const upstream = new URL(fetcher.mock.calls.at(-1)![0])
+      expect(upstream.pathname).toBe("/v1/products")
+      expect(upstream.searchParams.get("ProductFamilyDescription")).toBe(
+        category.query,
+      )
+      expect(upstream.searchParams.get("Size")).toBe("5")
+    }
   })
   it("fetches on a cold search, then serves a cache hit and learns an FTS part", async () => {
     const first = await get("/api/search?q=TPS62160DSGR")
