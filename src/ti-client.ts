@@ -129,15 +129,85 @@ export class TiClient {
     }
   }
 
+  async discover(family: string, offset: number) {
+    const url = new URL("https://transact.ti.com/v1/products")
+    url.searchParams.set("ProductFamilyDescription", family)
+    url.searchParams.set("Page", String(offset / 100))
+    url.searchParams.set("Size", "100")
+    const { data } = await this.getJson(url)
+    const body = data as { Content?: unknown; TotalElements?: unknown }
+    if (
+      !body ||
+      !Array.isArray(body.Content) ||
+      body.Content.length > 100 ||
+      typeof body.TotalElements !== "number" ||
+      !Number.isSafeInteger(body.TotalElements) ||
+      body.TotalElements < 0 ||
+      (body.Content.length > 0 &&
+        body.TotalElements < offset + body.Content.length)
+    )
+      throw new TiApiError("Invalid TI discovery page", 502)
+    const information = body.Content as Record<string, unknown>[]
+    for (const item of information) validatePartNumber(item?.Identifier)
+    return {
+      information,
+      nextOffset:
+        information.length && offset + information.length < body.TotalElements
+          ? offset + 100
+          : null,
+    }
+  }
+
+  async specifications(partNumber: string) {
+    const pn = validatePartNumber(partNumber)
+    const { data } = await this.getJson(
+      new URL(
+        `https://transact.ti.com/v1/products/${encodeURIComponent(pn)}/parametrics`,
+      ),
+    )
+    if (!data || typeof data !== "object" || Array.isArray(data))
+      throw new TiApiError("Invalid TI parametrics", 502)
+    return data as Record<string, unknown>
+  }
+
+  async inventory(partNumber: string) {
+    const pn = validatePartNumber(partNumber)
+    const url = new URL(
+      `https://transact.ti.com/v2/store/products/${encodeURIComponent(pn)}`,
+    )
+    url.searchParams.set("currency", this.env.TI_CURRENCY ?? "USD")
+    url.searchParams.set("exclude-evms", "true")
+    const response = await this.getJson(url)
+    const store = response.data as Record<string, unknown>
+    if (
+      !store ||
+      typeof store.tiPartNumber !== "string" ||
+      store.tiPartNumber.toUpperCase() !== pn.toUpperCase()
+    )
+      throw new TiApiError("TI returned a different orderable part number", 502)
+    return {
+      store,
+      updatedAt: response.expiresAt
+        ? response.expiresAt - 86400_000
+        : this.now(),
+    }
+  }
+
   async search(request: SearchRequest): Promise<UpstreamSearchResult> {
     const currency = this.env.TI_CURRENCY ?? "USD"
     if (!/^[A-Z]{3}$/.test(currency))
       throw new TiApiError("Invalid TI currency configuration", 503)
+    let inventoryUpdatedAt: number | undefined
     let partial = false
     let expiresAt: number | undefined
     let remaining: number | null = null
     const get = async (url: URL) => {
       const response = await this.getJson(url)
+      if (url.pathname.startsWith("/v2/store/"))
+        inventoryUpdatedAt = Math.min(
+          inventoryUpdatedAt ?? Infinity,
+          response.expiresAt ? response.expiresAt - 86400_000 : this.now(),
+        )
       if (response.expiresAt)
         expiresAt = Math.min(expiresAt ?? Infinity, response.expiresAt)
       if (response.remaining !== null)
@@ -253,6 +323,7 @@ export class TiClient {
           response: {
             products: request.offset === 0 ? [await enrich({ store })] : [],
             expiresAt,
+            inventoryUpdatedAt,
             ...(partial ? { partial: true } : {}),
             upstreamTotal: 1,
             nextOffset: null,
@@ -319,6 +390,7 @@ export class TiClient {
     return {
       response: {
         products,
+        ...(inventoryUpdatedAt !== undefined ? { inventoryUpdatedAt } : {}),
         ...(partial ? { partial: true } : {}),
         ...(expiresAt ? { expiresAt } : {}),
         upstreamTotal: total,

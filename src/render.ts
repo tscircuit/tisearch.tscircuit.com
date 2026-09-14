@@ -74,7 +74,7 @@ button { @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-3 r
         </div>
         <div class="flex flex-row flex-wrap items-center gap-2">
           <form action="/components/list" method="GET" class="flex flex-row border-none py-0 my-0">
-            <input type="text" name="search" placeholder="Search TI Part Number or Family" class="border m-0 mr-2" autocomplete="on" />
+            <input type="text" name="search" placeholder="Search TI parts" class="border m-0 mr-2" autocomplete="on" />
             <button type="submit" class="border px-3 py-1 m-0">Search</button>
           </form>
           <a href="https://github.com/tscircuit/tisearch.tscircuit.com">GitHub</a>
@@ -152,7 +152,6 @@ const renderParametricFilters = (options: TiFilterOptions, url: URL): string =>
       return `<div><label>${escapeHtml(filter.ParameterName)}:</label><select name="${escapeHtml(name)}">
         <option value="">All</option>
         ${(filter.FilterValues ?? [])
-          .slice(0, 100)
           .map(
             (value) =>
               `<option value="${escapeHtml(value.ValueId)}"${value.ValueId === selected ? " selected" : ""}>${escapeHtml(value.ValueName)} (${Number(value.ProductCount ?? 0).toLocaleString("en-US")})</option>`,
@@ -178,7 +177,6 @@ const renderFilters = (
     `<details><summary>More options</summary>
       <label>Inventory:</label><select name="in_stock"><option value="false">All store listings</option><option value="true"${url.searchParams.get("in_stock") === "true" ? " selected" : ""}>In stock</option></select>
       <label>Search by:</label><select name="mode"><option value="">Auto</option><option value="part"${url.searchParams.get("mode") === "part" ? " selected" : ""}>Part number</option><option value="family"${url.searchParams.get("mode") === "family" ? " selected" : ""}>Family</option></select>
-      <label>Results per page:</label><input type="number" name="limit" min="1" max="20" value="${payload.limit}" />
     </details>`,
   ].join("")
 
@@ -269,26 +267,12 @@ export const renderSearchPage = (
   requestUrl: string,
 ): string => {
   const url = new URL(requestUrl)
-  const freshness =
-    (payload.partial
-      ? `<span class="text-amber-700">${escapeHtml(payload.warnings?.join(" "))}</span> `
-      : "") +
-    (payload.stale
-      ? `<span class="text-amber-700">Serving stale cache while TI refreshes.</span>`
-      : payload.cached
-        ? `<span class="text-gray-600">Cached until ${escapeHtml(payload.cache_expires_at)}.</span>`
-        : `<span class="text-gray-600">Fresh from TI; cached until ${escapeHtml(payload.cache_expires_at)}.</span>`)
-
-  const pageLink = (offset: number, label: string) => {
-    const next = new URL(url)
-    next.searchParams.set("offset", String(offset))
-    next.searchParams.set("limit", String(payload.limit))
-    return `<a href="${escapeHtml(next.pathname + next.search)}">${label}</a>`
-  }
-  const paging = `<div class="my-2">${payload.offset > 0 ? pageLink(Math.max(0, payload.offset - payload.limit), "Previous") : ""}${payload.next_offset !== null ? pageLink(payload.next_offset, "Next") : ""}</div>`
+  const freshness = payload.last_updated_at
+    ? `<span class="text-gray-600">Stored TI inventory as of ${escapeHtml(payload.last_updated_at)}.${payload.stale ? " Inventory refresh is pending." : ""}</span>`
+    : `<span class="text-gray-600">No parts have been indexed for this search yet.</span>`
   return renderShell(
     pathname,
-    `<div><h2>${escapeHtml(label)}</h2>${renderFilters(category, payload, url)}<div class="my-1">${freshness} ${payload.total.toLocaleString("en-US")} matching products on this page.</div><div class="overflow-x-auto">${renderPartsTable(payload.components)}</div>${paging}</div>`,
+    `<div><h2>${escapeHtml(label)}</h2>${renderFilters(category, payload, url)}<div class="my-1">${freshness} ${payload.total.toLocaleString("en-US")} matching products.</div><div class="overflow-x-auto">${renderPartsTable(payload.components)}</div></div>`,
     `${label} - TI Parts Search`,
     requestUrl,
   )
@@ -303,7 +287,7 @@ export const renderSimpleTablePage = (
   const columns = Object.keys(rows[0] ?? {})
   const table =
     rows.length === 0
-      ? "<p>The on-demand index is empty. Search for parts to populate it.</p>"
+      ? "<p>No parts have been indexed yet. The catalog is populated by scheduled imports.</p>"
       : `<table class="border border-gray-300 text-xs border-collapse p-1"><thead><tr>${columns.map((column) => `<th class="p-1 border border-gray-300">${escapeHtml(titleCase(column))}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${columns.map((column) => `<td class="border border-gray-300 p-1">${escapeHtml(row[column])}</td>`).join("")}</tr>`).join("")}</tbody></table>`
   return renderShell(
     pathname,

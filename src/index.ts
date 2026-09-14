@@ -1,56 +1,17 @@
 import { CATEGORY_BY_PATH, CATEGORY_DEFINITIONS } from "./categories"
-import { TiApiError, TiClient } from "./ti-client"
-import {
-  applyPostFilters,
-  buildTiFilterOptions,
-  normalizeSearchResponse,
-} from "./normalize"
-import {
-  buildSearchPayload,
-  getCachedSearch,
-  getCompatibleCachedSearch,
-  getIndexedCategories,
-  getPackageIndex,
-  getRefreshCandidates,
-  putCachedSearch,
-  searchIndexedParts,
-} from "./search-cache"
-import {
-  createSearchRequest,
-  getSearchCacheKey,
-  SearchInputError,
-  upstreamRequest,
-} from "./search-request"
+import { queryCatalog } from "./catalog"
+import { syncMetadata, refreshInventory } from "./catalog-sync"
+import { getIndexedCategories, getPackageIndex } from "./parts-store"
+import { SearchInputError } from "./search-request"
 import {
   renderErrorPage,
   renderHomePage,
   renderSearchPage,
   renderSimpleTablePage,
 } from "./render"
-import type { Env, SearchCacheRow, SearchPayload, SearchRequest } from "./types"
+import type { Env, SearchPayload } from "./types"
 
 export { TiGateway } from "./ti-gateway"
-
-const clients = new WeakMap<Env, TiClient>()
-const getClient = (env: Env): TiClient => {
-  let client = clients.get(env)
-  if (!client) {
-    client = new TiClient(env, (input, init) =>
-      env.TI_GATEWAY
-        ? env.TI_GATEWAY.get(env.TI_GATEWAY.idFromName("ti-account")).fetch(
-            input,
-            init,
-          )
-        : fetch(input, init),
-    )
-    clients.set(env, client)
-  }
-  return client
-}
-const inFlight = new WeakMap<
-  Env,
-  Map<string, Promise<{ row: SearchCacheRow; payload: SearchPayload }>>
->()
 
 const addCorsHeaders = (headers: Headers, origin: string | null): void => {
   headers.set("access-control-allow-origin", origin ?? "*")
@@ -78,7 +39,7 @@ const jsonResponse = (
     "content-type": "application/json; charset=utf-8",
     "cache-control":
       (options.status ?? 200) >= 400 ? "no-store" : "public, max-age=60",
-    "x-data-source": "d1+ti",
+    "x-data-source": "d1",
   })
   if (options.cacheStatus) headers.set("x-cache", options.cacheStatus)
   if (options.retryAfter) headers.set("retry-after", options.retryAfter)
@@ -102,73 +63,12 @@ const htmlResponse = (
     "content-type": "text/html; charset=utf-8",
     "cache-control":
       (options.status ?? 200) >= 400 ? "no-store" : "public, max-age=60",
-    "x-data-source": "d1+ti",
+    "x-data-source": "d1",
   })
   if (options.cacheStatus) headers.set("x-cache", options.cacheStatus)
   if (options.retryAfter) headers.set("retry-after", options.retryAfter)
   addCorsHeaders(headers, origin)
   return new Response(html, { status: options.status ?? 200, headers })
-}
-
-const performRefresh = async (
-  env: Env,
-  cacheKey: string,
-  searchRequest: SearchRequest,
-): Promise<{
-  row: SearchCacheRow
-  payload: SearchPayload
-}> => {
-  const upstream = await getClient(env).search(searchRequest)
-  const normalized = normalizeSearchResponse(
-    upstream.response,
-    env.TI_CURRENCY ?? "USD",
-  )
-  const filterOptions = buildTiFilterOptions(normalized)
-  const components = applyPostFilters(normalized, searchRequest)
-  const cached = await putCachedSearch(
-    env,
-    cacheKey,
-    searchRequest,
-    upstream.response,
-    components,
-    filterOptions,
-    upstream.rateLimitRemaining,
-    normalized,
-  )
-  return {
-    row: cached.row,
-    payload: buildSearchPayload(cached.row, cached.document, false, false),
-  }
-}
-
-const refreshSearch = (env: Env, cacheKey: string, request: SearchRequest) => {
-  let pending = inFlight.get(env)
-  if (!pending) {
-    pending = new Map()
-    inFlight.set(env, pending)
-  }
-  const existing = pending.get(cacheKey)
-  if (existing) return existing
-  const task = performRefresh(env, cacheKey, request).finally(() =>
-    pending.delete(cacheKey),
-  )
-  pending.set(cacheKey, task)
-  return task
-}
-
-const refreshInBackground = async (
-  env: Env,
-  cacheKey: string,
-  searchRequest: SearchRequest,
-): Promise<void> => {
-  try {
-    await refreshSearch(env, cacheKey, searchRequest)
-  } catch (error) {
-    console.warn(
-      "Background TI refresh failed",
-      error instanceof TiApiError ? error.status : "upstream error",
-    )
-  }
 }
 
 const payloadForResponseKey = (
@@ -179,7 +79,9 @@ const payloadForResponseKey = (
   meta: {
     query: payload.query,
     ...(payload.partial ? { partial: true, warnings: payload.warnings } : {}),
-    filter_scope: "page",
+    filter_scope: "catalog",
+    catalog_complete: false,
+    last_updated_at: payload.last_updated_at,
     total: payload.total,
     upstream_total: payload.upstream_total,
     limit: payload.limit,
@@ -193,13 +95,6 @@ const payloadForResponseKey = (
   },
 })
 
-// Crawling an on-demand catalog must not spend the account's TI quota.
-const isCrawler = (request: Request): boolean =>
-  /crawler/i.test(String(request.cf?.verifiedBotCategory ?? "")) ||
-  /GPTBot|OAI-SearchBot|ClaudeBot|Googlebot|bingbot|AhrefsBot|SemrushBot|Bytespider|meta-externalagent/i.test(
-    request.headers.get("user-agent") ?? "",
-  )
-
 const handleSearchRoute = async (
   request: Request,
   env: Env,
@@ -209,93 +104,22 @@ const handleSearchRoute = async (
   origin: string | null,
 ): Promise<Response> => {
   const category = CATEGORY_BY_PATH.get(pathname)
-  const searchRequest = createSearchRequest(url, category)
   const json = pathname === "/api/search" || isJsonRequest(request, url)
-
-  if (!searchRequest.query) {
-    const message = "A non-empty q or search parameter is required"
-    return json
-      ? jsonResponse({ error: { message } }, origin, { status: 400 })
-      : htmlResponse(renderErrorPage(pathname, 400, message), origin, {
-          status: 400,
-        })
-  }
-
-  const retrieval = upstreamRequest(searchRequest)
-  const cacheKey = await getSearchCacheKey(retrieval, env.TI_CURRENCY ?? "USD")
-  const cached =
-    (await getCachedSearch(env, cacheKey)) ??
-    (await getCompatibleCachedSearch(env, retrieval))
-  const now = Date.now()
-
-  let payload: SearchPayload
-  let cacheStatus: "HIT" | "MISS" | "STALE"
-
-  if (cached && cached.row.expires_at > now) {
-    payload = buildSearchPayload(cached.row, cached.document, true, false)
-    cacheStatus = "HIT"
-  } else if (cached && cached.row.stale_until > now) {
-    payload = buildSearchPayload(cached.row, cached.document, true, true)
-    cacheStatus = "STALE"
-    if (!isCrawler(request))
-      ctx.waitUntil(refreshInBackground(env, cacheKey, retrieval))
-  } else {
-    if (isCrawler(request))
-      return jsonResponse(
-        { error: { message: "No cached TI result available for crawlers" } },
-        origin,
-        { status: 503, retryAfter: "3600" },
-      )
-    try {
-      const refreshed = await refreshSearch(env, cacheKey, retrieval)
-      payload = refreshed.payload
-      cacheStatus = "MISS"
-    } catch (error) {
-      console.error(
-        "TI refresh failed",
-        error instanceof Error ? error.message : "Unknown error",
-      )
-      const apiError =
-        error instanceof TiApiError
-          ? error
-          : new TiApiError("TI search failed", 502)
-      const status = [401, 403].includes(apiError.status)
-        ? 503
-        : apiError.status
-      return json
-        ? jsonResponse(
-            {
-              error: {
-                message: apiError.message,
-                upstream_status: apiError.status,
-              },
-            },
-            origin,
-            { status, retryAfter: apiError.retryAfter },
-          )
-        : htmlResponse(
-            renderErrorPage(pathname, status, apiError.message),
-            origin,
-            { status, retryAfter: apiError.retryAfter },
-          )
-    }
-  }
-
-  const components = applyPostFilters(payload.components, searchRequest)
-  payload = { ...payload, components, total: components.length }
+  const payload = await queryCatalog(env, url, category)
+  const cacheStatus = "INDEX" as const
 
   if (json) {
     const body =
       pathname === "/api/search"
         ? payload
-        : payloadForResponseKey(payload, searchRequest.responseKey)
+        : payloadForResponseKey(payload, category?.responseKey ?? "components")
     return jsonResponse(body, origin, { cacheStatus })
   }
 
   const label =
     category?.label ??
     (pathname === "/components/list"
-      ? `TI Component Search: ${searchRequest.query}`
+      ? `TI Component Search${payload.query ? `: ${payload.query}` : ""}`
       : "TI Component Search")
   return htmlResponse(
     renderSearchPage(pathname, label, category, payload, url.toString()),
@@ -370,7 +194,9 @@ const handleIndexedSearch = async (
     limit > 50
   )
     throw new SearchInputError("Invalid index query or limit")
-  const components = query ? await searchIndexedParts(env, query, limit) : []
+  const components = query
+    ? (await queryCatalog(env, url)).components.slice(0, limit)
+    : []
   return jsonResponse(
     { query, components, source: "ti-d1-index", partial: true },
     origin,
@@ -398,7 +224,7 @@ const handleFetch = async (
 
   const pathname = url.pathname.replace(/\.json$/, "")
   if (pathname === "/robots.txt")
-    return new Response("User-agent: *\nDisallow: /api/\nDisallow: /*/list\n", {
+    return new Response("User-agent: *\nDisallow: /api/\n", {
       headers: { "content-type": "text/plain; charset=utf-8" },
     })
   if (pathname === "/health") {
@@ -435,42 +261,6 @@ const handleFetch = async (
       })
 }
 
-const handleScheduled = async (env: Env): Promise<void> => {
-  const candidates = await getRefreshCandidates(env, 20)
-  const minimumRemaining = Number.parseInt(env.TI_MIN_REMAINING ?? "25", 10)
-  // Leave room for D1 and OAuth within a 50-subrequest Worker invocation.
-  let requestBudget = 44
-
-  for (const row of candidates) {
-    const searchRequest = JSON.parse(row.request_json) as SearchRequest
-    const cost =
-      (searchRequest.mode === "family"
-        ? searchRequest.limit * 2 + 1
-        : searchRequest.limit + 2) + 1
-    if (cost > requestBudget) break
-    requestBudget -= cost
-    try {
-      const cacheKey = await getSearchCacheKey(
-        searchRequest,
-        env.TI_CURRENCY ?? "USD",
-      )
-      const refreshed = await refreshSearch(env, cacheKey, searchRequest)
-      if (
-        refreshed.row.api_rate_limit_remaining !== null &&
-        refreshed.row.api_rate_limit_remaining <= minimumRemaining
-      )
-        break
-    } catch (error) {
-      if (
-        error instanceof TiApiError &&
-        [401, 403, 429, 503].includes(error.status)
-      )
-        break
-      console.warn("Scheduled TI refresh failed")
-    }
-  }
-}
-
 export default {
   async fetch(
     request: Request,
@@ -495,10 +285,14 @@ export default {
     }
   },
   async scheduled(
-    _controller: ScheduledController,
+    controller: ScheduledController,
     env: Env,
     ctx: ExecutionContext,
   ): Promise<void> {
-    ctx.waitUntil(handleScheduled(env))
+    ctx.waitUntil(
+      controller.cron === "17 */6 * * *"
+        ? syncMetadata(env)
+        : refreshInventory(env),
+    )
   },
 }
