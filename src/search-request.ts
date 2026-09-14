@@ -1,4 +1,5 @@
-import { type CategoryDefinition } from "./categories"
+import { SPEC_FILTERS, NUMERIC_SPEC_FILTERS } from "./jlc-compat"
+import { CATEGORY_DEFINITIONS, type CategoryDefinition } from "./categories"
 import { validatePartNumber } from "./part-number"
 import type { SearchRequest } from "./types"
 
@@ -22,20 +23,34 @@ export const createSearchRequest = (
   category?: CategoryDefinition,
 ): SearchRequest => {
   const p = url.searchParams
-  const query = (p.get("q") ?? p.get("search") ?? category?.query ?? "")
+  for (const name of ["is_basic", "is_preferred", "lcsc"]) {
+    if (p.get(name) && p.get(name) !== "All")
+      throw new SearchInputError(`${name} is not available in TI's catalog`)
+  }
+  let query = (
+    p.get("q") ??
+    p.get("search") ??
+    p.get("subcategory_name") ??
+    category?.query ??
+    ""
+  )
     .replace(/\s+/g, " ")
     .trim()
   if (!query || query.length > 200 || !/[\p{L}\p{N}]/u.test(query))
     throw new SearchInputError(
       "A non-empty q or search parameter of at most 200 characters is required",
     )
+  const family = CATEGORY_DEFINITIONS.find((c) =>
+    [c.query, c.label, c.responseKey.replaceAll("_", " ")].some(
+      (v) => v.toLowerCase() === query.toLowerCase(),
+    ),
+  )
+  if (family) query = family.query
   const mode =
     p.get("mode") ||
-    (category
-      ? "family"
-      : /^[A-Za-z][A-Za-z0-9./+_-]*\d[A-Za-z0-9./+_-]*$/.test(query)
-        ? "part"
-        : "family")
+    (/^[A-Za-z][A-Za-z0-9./+_-]*\d[A-Za-z0-9./+_-]*$/.test(query)
+      ? "part"
+      : "family")
   if (mode !== "part" && mode !== "family")
     throw new SearchInputError("mode must be part or family")
   if (mode === "part") {
@@ -47,20 +62,32 @@ export const createSearchRequest = (
   }
   const limit = integer(p.get("limit"), category ? 5 : 20, 1, 20)
   const offset = integer(p.get("offset"), 0, 0, 100000)
-  if (offset % limit !== 0)
-    throw new SearchInputError("offset must be a multiple of limit")
+
   const inStock = p.get("in_stock") || "false"
   if (!["true", "false"].includes(inStock))
     throw new SearchInputError("in_stock must be true or false")
-  const postFilters: Record<string, string> = {}
-  for (const name of ["package", "lifecycle", "package_code"]) {
+  const postFilters: Record<string, string> = { ...category?.defaultFilters }
+  for (const name of [
+    "package",
+    "lifecycle",
+    "package_code",
+    ...Object.keys(SPEC_FILTERS),
+  ]) {
     const value = p.get(name)?.trim()
     if (value && value.length > 100)
       throw new SearchInputError("Filter is too long")
-    if (value) postFilters[name] = value
+    if (value && value !== "All") {
+      if (
+        NUMERIC_SPEC_FILTERS.has(name) &&
+        (!Number.isFinite(Number(value)) || Number(value) < 0)
+      )
+        throw new SearchInputError(`Invalid numeric filter: ${name}`)
+      postFilters[name] = value
+    }
   }
   const pins = p.get("pin_count") || p.get("num_pins")
-  if (pins) postFilters.num_pins = String(integer(pins, 0, 1, 10000))
+  if (pins && pins !== "All")
+    postFilters.num_pins = String(integer(pins, 0, 1, 10000))
   const parametricFilters: SearchRequest["parametricFilters"] = []
   for (const [name, value] of p) {
     const match = /^param_(\d+)_(\d+)$/.exec(name)
@@ -86,7 +113,8 @@ export const createSearchRequest = (
     (a, b) =>
       a.categoryId.localeCompare(b.categoryId) || a.parameterId - b.parameterId,
   )
-  const manufacturers = p.get("manufacturer") ?? ""
+  const manufacturers =
+    p.get("manufacturer") === "All" ? "" : (p.get("manufacturer") ?? "")
   if (manufacturers.length > 200)
     throw new SearchInputError("Filter is too long")
   return {
@@ -116,7 +144,7 @@ export const getSearchCacheKey = async (
 ): Promise<string> => {
   const canonical = JSON.stringify({
     ...request,
-    schemaVersion: 2,
+    schemaVersion: 3,
     currency,
     query: request.query.toLowerCase(),
     postFilters: Object.fromEntries(
@@ -133,3 +161,18 @@ export const getSearchCacheKey = async (
     b.toString(16).padStart(2, "0"),
   ).join("")
 }
+
+// Filter-only changes reuse the same TI retrieval and D1 cache entry.
+export const upstreamRequest = (request: SearchRequest): SearchRequest => ({
+  ...request,
+  inStock: false,
+  manufacturerNames: [],
+  parametricFilters: [],
+  responseKey: "components",
+  sourceKind: "search",
+  postFilters: Object.fromEntries(
+    Object.entries(request.postFilters).filter(([key]) =>
+      ["num_pins", "lifecycle", "package_code"].includes(key),
+    ),
+  ),
+})

@@ -22,3 +22,11 @@ migrations_dir = "migrations"
 
 [triggers]
 crons = ["17 */6 * * *"]
+
+[[durable_objects.bindings]]
+name = "TI_GATEWAY"
+class_name = "TiGateway"
+
+[[migrations]]
+tag = "v1-ti-gateway"
+new_sqlite_classes = ["TiGateway"]
