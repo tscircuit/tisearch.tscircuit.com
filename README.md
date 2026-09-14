@@ -82,7 +82,10 @@ A family page makes at most two discovery requests, one Store request per
 product, and one parametrics request per Store listing. Default category pages
 remain limited to five products; cached searches make no upstream requests.
 TI listings without parametric records still appear with their available
-package information. An upstream rate-limit response stops the refresh.
+package information. A throttled discovery or inventory request stops the refresh. If only electrical
+specifications are throttled, available stock/pricing results are returned with
+`partial: true` and a warning. These partial responses are cached for at most
+one hour; no more enrichment requests are issued after the first throttle.
 
 Named filters include `resolution_bits`, `num_channels`, `channel_count`,
 `output_type`, `output_voltage`, `output_voltage_min`, `output_voltage_max`,
@@ -111,16 +114,26 @@ queries every six hours with bounded requests and throttling checks.
 
 The `TiGateway` Durable Object shares raw TI responses across all Worker
 instances and query/filter variants. Uncached requests are serialized at
-most twice per second. On HTTP 429 it persists a cooldown of at least 60
+most twice per second. Authentication runs only after a raw-response cache miss, so cached data remains
+available even when no OAuth token is in memory. On HTTP 429 it persists a
+separate cooldown for OAuth, Store, or Product Information of at least 60
 seconds (or longer when TI supplies `Retry-After`) and makes no automatic
 retries. Cached URLs remain available during the cooldown. A cold throttled
 request returns HTTP 429 with `Retry-After`, rather than a misleading 503.
 OAuth tokens are shared only in memory; credentials and tokens are never
 written to the gateway's persistent storage.
 
-Gateway responses expire after 24 hours, with one-hour negative caching for
-missing products. D1 freshness never extends beyond its source responses'
-expiry. Expired gateway entries are cleaned up daily.
+Gateway inventory responses expire after 24 hours. Product Information metadata
+(discovery and electrical specifications) is retained for 30 days, with
+one-hour negative caching for missing products. D1 freshness never extends beyond its source responses'
+expiry. Expired gateway entries are cleaned up daily. Compatible unfiltered D1
+pages from earlier cache-key versions remain usable without repeating TI calls.
+
+TI's [published limits](https://www.ti.com/developer-api/store-api/reference/response-codes-rate-limits.html)
+include 2,000 Product Information requests per month, in addition to the
+per-second/day limits. Pacing alone does not prevent quota exhaustion. Known
+crawlers receive cached pages only; they cannot trigger TI requests or stale
+refreshes. `robots.txt` also excludes listing and API URLs from crawling.
 
 The homepage and category directory do not call TI. Stock and prices can
 change between refreshes.

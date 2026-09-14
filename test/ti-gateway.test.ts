@@ -31,14 +31,22 @@ describe("shared TI gateway", () => {
       })
       vi.stubGlobal("fetch", fetcher)
       const results = await Promise.all([
-        instance.fetch(new Request(url)),
-        instance.fetch(new Request(`${url}&Pin=8`)),
+        instance.fetch(
+          new Request(url, { headers: { authorization: "Bearer fixture" } }),
+        ),
+        instance.fetch(
+          new Request(`${url}&Pin=8`, {
+            headers: { authorization: "Bearer fixture" },
+          }),
+        ),
       ])
       expect(results.map((r) => r.status)).toEqual([200, 200])
       expect(sleep).toHaveBeenCalledTimes(1)
       expect(sleep.mock.calls[0][1]).toBe(500)
       expect(times[1] - times[0]).toBe(500)
-      const cached = await instance.fetch(new Request(url))
+      const cached = await instance.fetch(
+        new Request(url, { headers: { authorization: "Bearer fixture" } }),
+      )
       expect(cached.headers.get("x-ti-cache-expires-at")).toBe(
         results[0].headers.get("x-ti-cache-expires-at"),
       )
@@ -62,17 +70,35 @@ describe("shared TI gateway", () => {
             }),
           ),
       )
-      await instance.fetch(new Request(url))
-      const limited = await instance.fetch(new Request(`${url}&Pin=8`))
+      await instance.fetch(
+        new Request(url, { headers: { authorization: "Bearer fixture" } }),
+      )
+      const limited = await instance.fetch(
+        new Request(`${url}&Pin=8`, {
+          headers: { authorization: "Bearer fixture" },
+        }),
+      )
       expect(limited.status).toBe(429)
       expect(Number(limited.headers.get("retry-after"))).toBeGreaterThan(110)
-      expect(await state.storage.get<number>("cooldown")).toBeGreaterThan(
-        Date.now() + 110_000,
-      )
-      expect((await instance.fetch(new Request(`${url}&Pin=16`))).status).toBe(
-        429,
-      )
-      expect((await instance.fetch(new Request(url))).status).toBe(200)
+      expect(
+        await state.storage.get<number>("cooldown:information"),
+      ).toBeGreaterThan(Date.now() + 110_000)
+      expect(
+        (
+          await instance.fetch(
+            new Request(`${url}&Pin=16`, {
+              headers: { authorization: "Bearer fixture" },
+            }),
+          )
+        ).status,
+      ).toBe(429)
+      expect(
+        (
+          await instance.fetch(
+            new Request(url, { headers: { authorization: "Bearer fixture" } }),
+          )
+        ).status,
+      ).toBe(200)
       expect(fetch).toHaveBeenCalledTimes(2)
     })
   })
@@ -101,6 +127,87 @@ describe("shared TI gateway", () => {
       expect(JSON.stringify([...(await state.storage.list())])).not.toMatch(
         /secret-token|private/,
       )
+    })
+  })
+  it("serves cached products without OAuth even after token eviction and during cooldown", async () => {
+    await runInDurableObject(stub(), async (instance: TiGateway, state) => {
+      const fetcher = vi.fn()
+      vi.stubGlobal("fetch", fetcher)
+      await state.storage.put(`response:${url}`, {
+        body: JSON.stringify({ Content: [{ Identifier: "TPS62160DSGR" }] }),
+        status: 200,
+        expiresAt: Date.now() + 60000,
+      })
+      await state.storage.put("cooldown:oauth", Date.now() + 60000)
+      const response = await instance.fetch(new Request(url))
+      expect(response.status).toBe(200)
+      expect(fetcher).not.toHaveBeenCalled()
+    })
+  })
+  it("does not block the Store API when Product Information is cooling down", async () => {
+    await runInDurableObject(stub(), async (instance: TiGateway, state) => {
+      await state.storage.put("cooldown:information", Date.now() + 60000)
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(Response.json({ tiPartNumber: "TPS62160DSGR" })),
+      )
+      const r = await instance.fetch(
+        new Request("https://transact.ti.com/v2/store/products/TPS62160DSGR", {
+          headers: { authorization: "Bearer fixture" },
+        }),
+      )
+      expect(r.status).toBe(200)
+      expect(fetch).toHaveBeenCalledTimes(1)
+    })
+  })
+  it("authenticates internally only for an uncached product", async () => {
+    await runInDurableObject(stub(), async (instance: TiGateway) => {
+      const fetcher = vi
+        .fn()
+        .mockImplementation(async (request: Request) =>
+          request.url.includes("oauth")
+            ? Response.json({ access_token: "test-token", expires_in: 3600 })
+            : Response.json({ Content: [], TotalElements: 0 }),
+        )
+      vi.stubGlobal("fetch", fetcher)
+      expect((await instance.fetch(new Request(url))).status).toBe(200)
+      expect(fetcher.mock.calls.map(([request]) => request.url)).toEqual([
+        "https://transact.ti.com/v1/oauth/accesstoken",
+        url,
+      ])
+      expect(fetcher.mock.calls[1][0].headers.get("authorization")).toBe(
+        "Bearer test-token",
+      )
+      expect((await instance.fetch(new Request(url))).status).toBe(200)
+      expect(fetcher).toHaveBeenCalledTimes(2)
+    })
+  })
+  it("retains metadata for 30 days without extending inventory or resetting fetch time", async () => {
+    await runInDurableObject(stub(), async (instance: TiGateway, state) => {
+      const oldExpiry = Date.now() - 3600_000
+      const entry = { body: "{}", status: 200, expiresAt: oldExpiry }
+      await state.storage.put(`response:${url}`, entry)
+      const storeUrl = "https://transact.ti.com/v2/store/products/TPS62160DSGR"
+      await state.storage.put(`response:${storeUrl}`, entry)
+      await state.storage.put("cooldown:store", Date.now() + 60000)
+      vi.stubGlobal("fetch", vi.fn())
+      const response = await instance.fetch(new Request(url))
+      expect(response.status).toBe(200)
+      expect(Number(response.headers.get("x-ti-cache-expires-at"))).toBe(
+        oldExpiry + 29 * 86400_000,
+      )
+      const migrated = await state.storage.get<{ fetchedAt: number }>(
+        `response:${url}`,
+      )
+      expect(migrated?.fetchedAt).toBe(oldExpiry - 86400_000)
+      const second = await instance.fetch(new Request(url))
+      expect(second.headers.get("x-ti-cache-expires-at")).toBe(
+        response.headers.get("x-ti-cache-expires-at"),
+      )
+      expect((await instance.fetch(new Request(storeUrl))).status).toBe(429)
+      expect(fetch).not.toHaveBeenCalled()
     })
   })
   it("rejects non-TI URLs and removes expired cached products", async () => {

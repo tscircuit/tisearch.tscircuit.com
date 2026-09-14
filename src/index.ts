@@ -8,6 +8,7 @@ import {
 import {
   buildSearchPayload,
   getCachedSearch,
+  getCompatibleCachedSearch,
   getIndexedCategories,
   getPackageIndex,
   getRefreshCandidates,
@@ -177,6 +178,7 @@ const payloadForResponseKey = (
   [responseKey]: payload.components,
   meta: {
     query: payload.query,
+    ...(payload.partial ? { partial: true, warnings: payload.warnings } : {}),
     filter_scope: "page",
     total: payload.total,
     upstream_total: payload.upstream_total,
@@ -190,6 +192,13 @@ const payloadForResponseKey = (
     filter_options: payload.filter_options,
   },
 })
+
+// Crawling an on-demand catalog must not spend the account's TI quota.
+const isCrawler = (request: Request): boolean =>
+  /crawler/i.test(String(request.cf?.verifiedBotCategory ?? "")) ||
+  /GPTBot|OAI-SearchBot|ClaudeBot|Googlebot|bingbot|AhrefsBot|SemrushBot|Bytespider|meta-externalagent/i.test(
+    request.headers.get("user-agent") ?? "",
+  )
 
 const handleSearchRoute = async (
   request: Request,
@@ -214,7 +223,9 @@ const handleSearchRoute = async (
 
   const retrieval = upstreamRequest(searchRequest)
   const cacheKey = await getSearchCacheKey(retrieval, env.TI_CURRENCY ?? "USD")
-  const cached = await getCachedSearch(env, cacheKey)
+  const cached =
+    (await getCachedSearch(env, cacheKey)) ??
+    (await getCompatibleCachedSearch(env, retrieval))
   const now = Date.now()
 
   let payload: SearchPayload
@@ -226,8 +237,15 @@ const handleSearchRoute = async (
   } else if (cached && cached.row.stale_until > now) {
     payload = buildSearchPayload(cached.row, cached.document, true, true)
     cacheStatus = "STALE"
-    ctx.waitUntil(refreshInBackground(env, cacheKey, retrieval))
+    if (!isCrawler(request))
+      ctx.waitUntil(refreshInBackground(env, cacheKey, retrieval))
   } else {
+    if (isCrawler(request))
+      return jsonResponse(
+        { error: { message: "No cached TI result available for crawlers" } },
+        origin,
+        { status: 503, retryAfter: "3600" },
+      )
     try {
       const refreshed = await refreshSearch(env, cacheKey, retrieval)
       payload = refreshed.payload
@@ -379,6 +397,10 @@ const handleFetch = async (
   }
 
   const pathname = url.pathname.replace(/\.json$/, "")
+  if (pathname === "/robots.txt")
+    return new Response("User-agent: *\nDisallow: /api/\nDisallow: /*/list\n", {
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    })
   if (pathname === "/health") {
     return jsonResponse({ ok: true }, origin)
   }

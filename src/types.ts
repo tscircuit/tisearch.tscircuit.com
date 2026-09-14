@@ -80,6 +80,7 @@ export interface TiProductRecord {
 }
 
 export interface TiSearchResponse {
+  partial?: boolean
   expiresAt?: number
   products: TiProductRecord[]
   upstreamTotal: number
@@ -92,6 +93,8 @@ export interface UpstreamSearchResult {
 }
 
 export interface SearchPayload {
+  partial?: boolean
+  warnings?: string[]
   filter_scope?: "page"
   query: string
   components: NormalizedPart[]

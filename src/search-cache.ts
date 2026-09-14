@@ -1,4 +1,6 @@
-import { toSearchText } from "./normalize"
+import { toSearchText, buildTiFilterOptions } from "./normalize"
+import { standardFields } from "./jlc-compat"
+import { getSearchCacheKey, upstreamRequest } from "./search-request"
 import type {
   TiFilterOptions,
   TiSearchResponse,
@@ -10,6 +12,7 @@ import type {
 } from "./types"
 
 interface CachedSearchDocument {
+  partial?: boolean
   components: NormalizedPart[]
   total: number
   upstream_total: number
@@ -81,6 +84,53 @@ export const getCachedSearch = async (
   }
 }
 
+// Cache-key revisions must not discard usable, unfiltered pages and spend TI quota again.
+export const getCompatibleCachedSearch = async (
+  env: Env,
+  request: SearchRequest,
+) => {
+  const currency = env.TI_CURRENCY ?? "USD"
+  const key = await getSearchCacheKey(upstreamRequest(request), currency)
+  const rows = await env.DB.prepare(`SELECT * FROM search_cache
+    WHERE lower(query) = lower(?) AND stale_until > ?
+      AND json_extract(request_json, '$.limit') = ? AND json_extract(request_json, '$.offset') = ?
+    ORDER BY refreshed_at DESC LIMIT 20`)
+    .bind(request.query, Date.now(), request.limit, request.offset)
+    .all<Record<string, unknown>>()
+  for (const raw of rows.results ?? []) {
+    try {
+      const row = mapCacheRow(raw)
+      const old = JSON.parse(row.request_json) as SearchRequest
+      // Older versions cached post-filtered pages: those cannot satisfy a broader search.
+      if (
+        old.inStock ||
+        old.manufacturerNames.length ||
+        old.parametricFilters.length ||
+        Object.keys(old.postFilters).some(
+          (name) => !["num_pins", "lifecycle", "package_code"].includes(name),
+        )
+      )
+        continue
+      if ((await getSearchCacheKey(upstreamRequest(old), currency)) !== key)
+        continue
+      const document = JSON.parse(row.response_json) as CachedSearchDocument
+      if (document.components.some((part) => part.currency !== currency))
+        continue
+      document.components = document.components.map((part) => ({
+        ...part,
+        ...standardFields(part.parametrics ?? {}),
+        num_pins: part.pin_count,
+        price1: part.price_breaks?.find((b) => b.quantity === 1)?.price ?? null,
+      }))
+      document.filter_options = buildTiFilterOptions(document.components)
+      return { row, document }
+    } catch {
+      /* Ignore incompatible legacy records. */
+    }
+  }
+  return null
+}
+
 export const putCachedSearch = async (
   env: Env,
   cacheKey: string,
@@ -100,6 +150,7 @@ export const putCachedSearch = async (
   )
   const staleUntil = expiresAt + staleTtlSeconds * 1_000
   const document: CachedSearchDocument = {
+    ...(upstreamResponse.partial ? { partial: true } : {}),
     components,
     total: components.length,
     upstream_total: upstreamResponse.upstreamTotal,
@@ -230,6 +281,14 @@ export const buildSearchPayload = (
   stale: boolean,
 ): SearchPayload => ({
   query: row.query,
+  ...(document.partial
+    ? {
+        partial: true,
+        warnings: [
+          "TI electrical specifications are temporarily incomplete; stock and pricing are available. Electrical filters may omit matching parts.",
+        ],
+      }
+    : {}),
   filter_scope: "page",
   components: document.components,
   total: document.total,

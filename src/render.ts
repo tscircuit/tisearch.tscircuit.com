@@ -269,11 +269,15 @@ export const renderSearchPage = (
   requestUrl: string,
 ): string => {
   const url = new URL(requestUrl)
-  const freshness = payload.stale
-    ? `<span class="text-amber-700">Serving stale cache while TI refreshes.</span>`
-    : payload.cached
-      ? `<span class="text-gray-600">Cached until ${escapeHtml(payload.cache_expires_at)}.</span>`
-      : `<span class="text-gray-600">Fresh from TI; cached until ${escapeHtml(payload.cache_expires_at)}.</span>`
+  const freshness =
+    (payload.partial
+      ? `<span class="text-amber-700">${escapeHtml(payload.warnings?.join(" "))}</span> `
+      : "") +
+    (payload.stale
+      ? `<span class="text-amber-700">Serving stale cache while TI refreshes.</span>`
+      : payload.cached
+        ? `<span class="text-gray-600">Cached until ${escapeHtml(payload.cache_expires_at)}.</span>`
+        : `<span class="text-gray-600">Fresh from TI; cached until ${escapeHtml(payload.cache_expires_at)}.</span>`)
 
   const pageLink = (offset: number, label: string) => {
     const next = new URL(url)

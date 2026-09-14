@@ -10,7 +10,11 @@ export default defineWorkersConfig(async () => ({
       workers: {
         wrangler: { configPath: "./wrangler.toml" },
         miniflare: {
-          bindings: { TEST_MIGRATIONS: await readD1Migrations("./migrations") },
+          bindings: {
+            TI_CLIENT_ID: "test-id",
+            TI_CLIENT_SECRET: "test-secret",
+            TEST_MIGRATIONS: await readD1Migrations("./migrations"),
+          },
         },
       },
     },

@@ -181,6 +181,60 @@ describe("reference-pattern Worker and D1 cache", () => {
     const result = await body("/api/search?q=TPS62160DSGR")
     expect(new Date(result.cache_expires_at).getTime()).toBe(expiry)
   })
+  it("does not spend TI quota for crawlers, including stale-cache refreshes", async () => {
+    const options = { headers: { "user-agent": "GPTBot/1.4" } }
+    expect((await get("/dcdc_converters/list.json", options)).status).toBe(503)
+    expect(fetcher).not.toHaveBeenCalled()
+    await get("/dcdc_converters/list.json")
+    const calls = fetcher.mock.calls.length
+    await env.DB.prepare("UPDATE search_cache SET expires_at=0").run()
+    expect(
+      (await get("/dcdc_converters/list.json", options)).headers.get("x-cache"),
+    ).toBe("STALE")
+    await drain()
+    expect(fetcher).toHaveBeenCalledTimes(calls)
+    expect(await (await get("/robots.txt")).text()).toContain(
+      "Disallow: /*/list",
+    )
+  })
+  it("reuses compatible pages written before a cache-key change without contacting TI", async () => {
+    await get("/dcdc_converters/list.json")
+    await env.DB.prepare("UPDATE search_cache SET cache_key='legacy-key'").run()
+    const calls = fetcher.mock.calls.length
+    fetcher.mockResolvedValue(new Response(null, { status: 429 }))
+    const response = await get("/dcdc_converters/list.json")
+    expect(response.status).toBe(200)
+    expect(response.headers.get("x-cache")).toBe("HIT")
+    expect(((await response.json()) as any).dcdc_converters[0].mfr).toBe(
+      "TPS62160DSGR",
+    )
+    expect(fetcher).toHaveBeenCalledTimes(calls)
+  })
+  it("never treats a legacy filtered page as a complete unfiltered result", async () => {
+    await get("/dcdc_converters/list.json")
+    await env.DB.prepare(
+      `UPDATE search_cache SET cache_key='legacy-filtered', request_json=json_set(request_json,'$.inStock',json('true'))`,
+    ).run()
+    fetcher.mockResolvedValue(new Response(null, { status: 429 }))
+    expect((await get("/dcdc_converters/list.json")).status).toBe(429)
+  })
+  it("keeps actual stock and prices when optional electrical enrichment is throttled", async () => {
+    fetcher.mockImplementation((url: string | URL) =>
+      Promise.resolve(
+        String(url).endsWith("/parametrics")
+          ? new Response(null, { status: 429 })
+          : respond(url),
+      ),
+    )
+    const response = await get("/dcdc_converters/list.json")
+    expect(response.status).toBe(200)
+    const result = (await response.json()) as any
+    expect(result.dcdc_converters[0].stock).toBe(1200)
+    expect(result.meta.partial).toBe(true)
+    expect(result.meta.warnings[0]).toContain("electrical specifications")
+    const html = await (await get("/dcdc_converters/list")).text()
+    expect(html).toContain("temporarily incomplete")
+  })
   it("uses the reference category-tile homepage without fetching parts", async () => {
     const html = await (await get("/")).text()
     expect(html).toContain("flex flex-wrap gap-4")
