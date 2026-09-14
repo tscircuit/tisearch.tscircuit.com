@@ -283,6 +283,7 @@ const handleCategories = async (
 ): Promise<Response> => {
   const indexed = await getIndexedCategories(env)
   const categories = CATEGORY_DEFINITIONS.map((category) => ({
+    group: category.group,
     category: category.label,
     subcategory: category.query,
     path: category.path,
