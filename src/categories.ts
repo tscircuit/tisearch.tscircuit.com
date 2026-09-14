@@ -14,23 +14,21 @@ export const COMMON_FILTERS = [
 
 // Shortcuts to TI ProductFamilyDescription prefixes, not an exhaustive taxonomy.
 export const CATEGORY_DEFINITIONS: CategoryDefinition[] = [
-  ["buck_converters", "Buck Converters", "Buck converters"],
-  ["boost_converters", "Boost Converters", "Boost converters"],
-  ["buck_boost_converters", "Buck-Boost Converters", "Buck-boost"],
-  ["ldos", "Linear Regulators", "Linear"],
+  ["dcdc_converters", "DC/DC Converters", "DC/DC converters"],
+  ["ldos", "Linear & LDO Regulators", "Linear & low-dropout (LDO) regulators"],
   ["comparators", "Comparators", "Comparators"],
   [
     "current_sense_amplifiers",
     "Current Sense Amplifiers",
-    "Current sense amplifiers",
+    "Analog current-sense amplifiers",
   ],
   [
     "instrumentation_amplifiers",
     "Instrumentation Amplifiers",
     "Instrumentation amplifiers",
   ],
-  ["battery_chargers", "Battery Chargers", "Battery charger"],
-  ["rf_transceivers", "RF Transceivers", "RF-sampling transceivers"],
+  ["battery_chargers", "Battery Chargers", "Battery charger ICs"],
+  ["rf_transceivers", "RF Transceivers", "RF transceivers"],
 ].map(([key, label, query]) => ({
   path: `/${key}/list`,
   label,
@@ -42,3 +40,17 @@ export const CATEGORY_DEFINITIONS: CategoryDefinition[] = [
 export const CATEGORY_BY_PATH = new Map(
   CATEGORY_DEFINITIONS.map((c) => [c.path, c]),
 )
+
+// TI groups buck, boost and buck-boost devices under one API family.
+// Keep old URLs working, but label the broader results accurately.
+for (const key of [
+  "buck_converters",
+  "boost_converters",
+  "buck_boost_converters",
+]) {
+  CATEGORY_BY_PATH.set(`/${key}/list`, {
+    ...CATEGORY_DEFINITIONS[0],
+    path: `/${key}/list`,
+    responseKey: key,
+  })
+}
