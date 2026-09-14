@@ -1,0 +1,82 @@
+{
+  "Vout": {
+    "Type": "Vout",
+    "Description": "Output voltage (VOUT or VO)",
+    "Unit": "V",
+    "UnitDescription": "Volts",
+    "Range": {
+      "Min": "0.9",
+      "Max": "6"
+    }
+  },
+  "Operating temperature range": {
+    "Type": "Operating temperature range",
+    "Description": "The recommended temperature range that a product should be operated; could be TJ or TA",
+    "Unit": "°C",
+    "UnitDescription": "Degree Celsius",
+    "Range": {
+      "Min": "-40",
+      "Max": "125"
+    }
+  },
+  "TI functional safety category": {
+    "Type": "TI functional safety category",
+    "Value": "null",
+    "Description": "TI functional safety category"
+  },
+  "Control mode": {
+    "Type": "Control mode",
+    "Value": "Constant on-time (COT), DCS-Control",
+    "Description": "Control mode"
+  },
+  "Duty cycle": {
+    "Type": "Duty cycle",
+    "Description": "Duty cycle",
+    "Unit": "%",
+    "UnitDescription": "Percentage",
+    "Range": {
+      "Max": "100"
+    }
+  },
+  "Rating": {
+    "Type": "Rating",
+    "Value": "Catalog",
+    "Description": "A rating assigned to a product based on industry classifications for specific application usage"
+  },
+  "Iout": {
+    "Type": "Iout",
+    "Description": "Output current",
+    "Unit": "A",
+    "UnitDescription": "Amperes",
+    "Range": {
+      "Max": "1"
+    }
+  },
+  "Iq": {
+    "Type": "Iq",
+    "Value": "0.000017",
+    "Description": "Quiescent current (Iq)",
+    "Unit": "A",
+    "UnitDescription": "Amperes"
+  },
+  "Features": {
+    "Type": "Features",
+    "Value": "Enable, Light-load efficiency, Output discharge, Power good, Synchronous rectification, Tracking, Voltage Margining",
+    "Description": "Features"
+  },
+  "Vin": {
+    "Type": "Vin",
+    "Description": "Input voltage (VIN or VI)",
+    "Unit": "V",
+    "UnitDescription": "Volts",
+    "Range": {
+      "Min": "3",
+      "Max": "17"
+    }
+  },
+  "Topology": {
+    "Type": "Topology",
+    "Value": "Buck",
+    "Description": "Topology"
+  }
+}

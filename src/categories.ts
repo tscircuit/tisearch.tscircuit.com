@@ -11,8 +11,6 @@ export interface CategoryDefinition {
 
 export const COMMON_FILTERS = [
   { name: "package", label: "Package", placeholder: "WSON" },
-  { name: "num_pins", label: "Pins", placeholder: "8" },
-  { name: "lifecycle", label: "Lifecycle", placeholder: "ACTIVE" },
 ]
 
 // Family names verified against TI Product Information on 2026-09-14.

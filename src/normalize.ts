@@ -34,7 +34,7 @@ const tiUrl = (value: unknown, fallback = ""): string => {
 }
 
 export const normalizeProduct = (
-  { store: product, information: info = {} }: TiProductRecord,
+  { store: product, information: info = {}, parametrics = {} }: TiProductRecord,
   currency = "USD",
 ): NormalizedPart => {
   const pn = validatePartNumber(product.tiPartNumber)
@@ -76,8 +76,28 @@ export const normalizeProduct = (
     if (typeof value === "number" && Number.isFinite(value))
       parameters[key] = String(value)
   }
+  const paramText = (value: unknown) => {
+    const result = text(value)
+    return /^(null|undefined|n\/a)$/i.test(result) ? "" : result
+  }
+  for (const [name, raw] of Object.entries(parametrics)) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue
+    const spec = raw as Record<string, unknown>
+    const unit = paramText(spec.Unit)
+    const range =
+      spec.Range && typeof spec.Range === "object"
+        ? (spec.Range as Record<string, unknown>)
+        : {}
+    const min = paramText(range.Min)
+    const max = paramText(range.Max)
+    const value =
+      paramText(spec.Value) ||
+      (min && max ? `${min}–${max}` : min ? `≥ ${min}` : max ? `≤ ${max}` : "")
+    if (value) parameters[unit ? `${name} (${unit})` : name] = value
+  }
   return {
     ti_product_number: pn,
+    parametrics,
     ti_part_number: pn,
     supplier_part_number: pn,
     mfr: pn,
@@ -170,9 +190,9 @@ export const buildTiFilterOptions = (
         ParameterName: name,
         FilterValues: [...values.entries()]
           .sort(([a], [b]) => a.localeCompare(b))
-          .map(([ValueId, ProductCount]) => ({
-            ValueId,
-            ValueName: ValueId,
+          .map(([value, ProductCount]) => ({
+            ValueId: String(parameterId(value)),
+            ValueName: value,
             ProductCount,
           })),
       })),
@@ -221,7 +241,8 @@ export const applyPostFilters = (
         Object.entries(part.parameters).some(
           ([name, value]) =>
             parameterId(name) === filter.parameterId &&
-            filter.valueIds.includes(value),
+            (filter.valueIds.includes(String(parameterId(value))) ||
+              filter.valueIds.includes(value)),
         ),
     )
   })

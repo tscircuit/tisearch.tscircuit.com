@@ -11,7 +11,6 @@ import {
   getIndexedCategories,
   getPackageIndex,
   getRefreshCandidates,
-  getRecentParts,
   putCachedSearch,
   searchIndexedParts,
 } from "./search-cache"
@@ -372,7 +371,7 @@ const handleFetch = async (
     return jsonResponse({ ok: true }, origin)
   }
   if (pathname === "/") {
-    return htmlResponse(renderHomePage(await getRecentParts(env)), origin)
+    return htmlResponse(renderHomePage(), origin)
   }
   if (pathname === "/categories/list") {
     return handleCategories(request, env, url, origin)
@@ -411,7 +410,9 @@ const handleScheduled = async (env: Env): Promise<void> => {
   for (const row of candidates) {
     const searchRequest = JSON.parse(row.request_json) as SearchRequest
     const cost =
-      (searchRequest.mode === "family" ? searchRequest.limit + 1 : 2) + 1
+      (searchRequest.mode === "family"
+        ? searchRequest.limit * 2 + 1
+        : searchRequest.limit + 2) + 1
     if (cost > requestBudget) break
     requestBudget -= cost
     try {

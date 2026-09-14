@@ -67,7 +67,7 @@ button { @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-3 r
     <div class="wrapper">
       <div class="border-b border-gray-300 py-1 flex flex-wrap justify-between items-center gap-2">
         <div>
-          <span class="px-1 pr-2">TI Parts Search (Unofficial)</span>
+          <span class="px-1 pr-2">TI Parts Engine (Unofficial)</span>
           <span><a href="/">home</a></span>
           ${renderBreadcrumbs(pathname)}
         </div>
@@ -87,25 +87,21 @@ button { @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-3 r
   </body>
 </html>`
 
-export const renderHomePage = (parts: NormalizedPart[] = []): string => {
-  const groups = [...new Set(CATEGORY_DEFINITIONS.map((c) => c.group))]
-  const links = groups
+export const renderHomePage = (): string => {
+  const links = [
+    { path: "/categories/list", label: "Categories" },
+    { path: "/footprint_index/list", label: "Package Index" },
+    ...CATEGORY_DEFINITIONS,
+  ]
     .map(
-      (group) => `<section class="border border-gray-200 rounded p-3">
-    <h2>${escapeHtml(group)}</h2><ul class="space-y-1">${CATEGORY_DEFINITIONS.filter(
-      (c) => c.group === group,
-    )
-      .map(
-        ({ path, label }) =>
-          `<li><a href="${escapeHtml(path)}">${escapeHtml(label)}</a></li>`,
-      )
-      .join("")}</ul></section>`,
+      ({ path, label }) =>
+        `<a href="${escapeHtml(path)}">${escapeHtml(label)}</a>`,
     )
     .join("")
 
   return renderShell(
     "/",
-    `<div><p class="my-2"><a href="/categories/list">All categories</a> · <a href="/footprint_index/list">Package index</a></p><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">${links}</div><h2>Recently retrieved parts</h2><p>Cached TI stock and pricing from the last 24 hours. Browse a category or search a part number to find more.</p>${parts.length ? renderPartsTable(parts) : "<p>No parts retrieved yet. Select a category above to load parts from TI.</p>"}</div>`,
+    `<div><div class="flex flex-wrap gap-4 *:text-lg *:border *:rounded *:p-2 *:border-gray-300 *:w-32 *:text-sm *:text-center">${links}</div></div>`,
   )
 }
 
@@ -149,7 +145,6 @@ const renderParametricFilters = (options: TiFilterOptions, url: URL): string =>
         filter.ParameterName &&
         (filter.FilterValues?.length ?? 0) > 0,
     )
-    .slice(0, 12)
     .map((filter) => {
       const name = `param_${filter.Category?.Id}_${filter.ParameterId}`
       const selected = url.searchParams.get(name) ?? ""
@@ -171,17 +166,37 @@ const renderFilters = (
   payload: SearchPayload,
   url: URL,
 ): string => {
-  const queryField = `<div><label>${category ? "Family prefix" : "Search"}:</label><input name="q" value="${escapeHtml(payload.query)}" /></div>
-    <div><label>Search by:</label><select name="mode"><option value="">Auto</option><option value="part"${url.searchParams.get("mode") === "part" ? " selected" : ""}>Part number</option><option value="family"${url.searchParams.get("mode") === "family" || (category && !url.searchParams.get("mode")) ? " selected" : ""}>Family prefix</option></select></div>
-    <div><label>Inventory:</label><select name="in_stock"><option value="true">In stock</option><option value="false"${url.searchParams.get("in_stock") !== "true" ? " selected" : ""}>All store listings</option></select></div><input type="hidden" name="limit" value="${payload.limit}">`
+  const queryField = category
+    ? ""
+    : `<div><label>Search:</label><input name="search" value="${escapeHtml(url.searchParams.get("search") ?? url.searchParams.get("q") ?? "")}" /></div>`
   const filters = [
     queryField,
     renderStaticFilters(category, url),
     renderManufacturerFilter(payload.filter_options, url),
     renderParametricFilters(payload.filter_options, url),
+    `<details><summary>More options</summary>
+      <label>Inventory:</label><select name="in_stock"><option value="false">All store listings</option><option value="true"${url.searchParams.get("in_stock") === "true" ? " selected" : ""}>In stock</option></select>
+      <label>Search by:</label><select name="mode"><option value="">Auto</option><option value="part"${url.searchParams.get("mode") === "part" ? " selected" : ""}>Part number</option><option value="family"${url.searchParams.get("mode") === "family" ? " selected" : ""}>Family</option></select>
+      <label>Results per page:</label><input type="number" name="limit" min="1" max="20" value="${payload.limit}" />
+    </details>`,
   ].join("")
 
-  return `<form method="GET" class="flex flex-row flex-wrap gap-4">${filters}<button type="submit">Filter</button></form>`
+  const familyQuery =
+    category && (url.searchParams.has("q") || url.searchParams.has("search"))
+      ? `<input type="hidden" name="q" value="${escapeHtml(payload.query)}" />`
+      : ""
+  const preserved = ["num_pins", "pin_count", "lifecycle", "package_code"]
+    .filter(
+      (name) =>
+        url.searchParams.has(name) &&
+        !(category?.filters ?? []).some((f) => f.name === name),
+    )
+    .map(
+      (name) =>
+        `<input type="hidden" name="${name}" value="${escapeHtml(url.searchParams.get(name))}" />`,
+    )
+    .join("")
+  return `<form method="GET" class="flex flex-row flex-wrap gap-4">${familyQuery}${preserved}${filters}<button type="submit">Filter</button></form>`
 }
 
 const formatPrice = (part: NormalizedPart): string =>
@@ -227,7 +242,7 @@ const renderPartsTable = (parts: NormalizedPart[]): string => {
         "Package",
         "Description",
         "Stock",
-        "Unit Price @ Qty",
+        "Price",
         "Parameters",
       ]
         .map(
@@ -262,7 +277,7 @@ export const renderSearchPage = (
   const paging = `<div class="my-2">${payload.offset > 0 ? pageLink(Math.max(0, payload.offset - payload.limit), "Previous") : ""}${payload.next_offset !== null ? pageLink(payload.next_offset, "Next") : ""}</div>`
   return renderShell(
     pathname,
-    `<div><h2>${escapeHtml(label)}</h2>${category ? `<p class="my-1">TI family: ${escapeHtml(category.query)}. This page covers that API family; some related devices have separate categories.</p>` : ""}${renderFilters(category, payload, url)}<div class="my-1">${freshness} ${payload.total.toLocaleString("en-US")} matching products on this page.</div><p class="text-gray-600 my-1">Search by exact or base part number, or the beginning of a TI product family name. Stock and filters apply to each page.</p><div class="overflow-x-auto">${renderPartsTable(payload.components)}</div>${paging}</div>`,
+    `<div><h2>${escapeHtml(label)}</h2>${renderFilters(category, payload, url)}<div class="my-1">${freshness} ${payload.total.toLocaleString("en-US")} matching products on this page.</div><div class="overflow-x-auto">${renderPartsTable(payload.components)}</div>${paging}</div>`,
     `${label} - TI Parts Search`,
     requestUrl,
   )

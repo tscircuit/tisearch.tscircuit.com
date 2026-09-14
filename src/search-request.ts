@@ -116,6 +116,7 @@ export const getSearchCacheKey = async (
 ): Promise<string> => {
   const canonical = JSON.stringify({
     ...request,
+    schemaVersion: 2,
     currency,
     query: request.query.toLowerCase(),
     postFilters: Object.fromEntries(
