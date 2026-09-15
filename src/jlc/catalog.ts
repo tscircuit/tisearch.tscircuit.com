@@ -492,6 +492,9 @@ export async function queryCompatibleCategory(
         Object.fromEntries(fields.map((field) => [field, row[field] ?? null])),
       ),
     },
+    productUrls: Object.fromEntries(
+      parts.map((part) => [part.mfr, part.product_url]),
+    ),
     filterOptions: options,
   }
 }

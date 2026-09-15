@@ -95,6 +95,7 @@ it("aggregates TI ADC families, projects the category schema, and filters all st
         store: {
           ...catalog.catalog[0],
           tiPartNumber: `ADC${i}`,
+          buyNowUrl: `https://www.ti.com/product/ADC${i}/part-details/ADC${i}`,
           quantity: 125 - i,
         },
         information: {
@@ -124,7 +125,9 @@ it("aggregates TI ADC families, projects the category schema, and filters all st
   expect(adcs[0]).toHaveProperty("sampling_rate_hz")
   const html = await (await get("/adcs/list?resolution_bits=24")).text()
   expect(html).toContain('name="resolution_bits" value="24"')
-  expect(html).toContain("https://www.ti.com/product/ADC124")
+  expect(html).toContain(
+    "https://www.ti.com/product/ADC124/part-details/ADC124",
+  )
   expect(html).not.toContain("jlcpcb.com/partdetail")
   expect(
     (await json("/resistors/list.json?resistance=10000&is_basic=false"))
@@ -339,4 +342,21 @@ it("preserves the complete taxonomy and maps amplifier directory links to TI dat
       (part: any) => part.subcategory === "Operational Amplifier",
     ),
   ).toBe(true)
+})
+
+it("links category and search MFRs to stored TI URLs without changing category JSON", async () => {
+  const productUrl =
+    "https://www.ti.com/product/MSP432P401R/part-details/MSP432P401RIPZR"
+  await seed("General-purpose MCUs", "MSP432P401RIPZR", {
+    product_url: productUrl,
+    parametrics: { CPU: { Value: "ARM Cortex-M4F" } },
+  })
+  for (const path of [
+    "/arm_processors/list",
+    "/microcontrollers/list",
+    "/components/list?search=MSP432",
+  ])
+    expect(await (await get(path)).text()).toContain(`href="${productUrl}"`)
+  const result = await json("/arm_processors/list.json")
+  expect(result.arm_processors[0]).not.toHaveProperty("product_url")
 })
