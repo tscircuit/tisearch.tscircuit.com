@@ -1,0 +1,4134 @@
+{
+  "source": "https://jlcsearch.tscircuit.com/categories/list.json",
+  "captured_at": "2026-09-15",
+  "categories": [
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "ADC/DAC - Specialized"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": ""
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Audio Amplifiers"
+    },
+    {
+      "category": "Analog ICs",
+      "subcategory": "Analog To Digital Converters (ADCs)"
+    },
+    {
+      "category": "Audio Components/Vibration Motors",
+      "subcategory": "Buzzers"
+    },
+    {
+      "category": "Audio Products / Vibration Motors",
+      "subcategory": "Buzzers"
+    },
+    {
+      "category": "Audio Products/Micromotors",
+      "subcategory": "Buzzers"
+    },
+    {
+      "category": "Battery Products",
+      "subcategory": "Battery Holders, Clips & Contacts"
+    },
+    {
+      "category": "Bead/Filter/EMI Optimization",
+      "subcategory": "Active Filters"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Aluminum Electrolytic Capacitors (Can - Screw Terminals)"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Automotive Fuses"
+    },
+    {
+      "category": "Clock And Timing",
+      "subcategory": "Clock Buffers, Drivers"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "555 Timers / Counters"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Analog Switches - Special Purpose"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "AC Power Connector"
+    },
+    {
+      "category": "Consumables",
+      "subcategory": "Heat Shrink Tubing"
+    },
+    {
+      "category": "Consumables And Auxiliary Materials",
+      "subcategory": "Metal Products * SMT Copper Sheet"
+    },
+    {
+      "category": "Crystal Oscillator/Oscillator/Resonator",
+      "subcategory": "Crystals"
+    },
+    {
+      "category": "Crystals",
+      "subcategory": "SMD Crystal Resonators"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Ceramic Resonators"
+    },
+    {
+      "category": "Crystals/Oscillators/Resonators",
+      "subcategory": "Crystals"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "ADCs/DACs - Special Purpose"
+    },
+    {
+      "category": "Data Converters",
+      "subcategory": "Analog Switches & Multiplexers"
+    },
+    {
+      "category": "Development Boards & Tools",
+      "subcategory": "Development Boards & Kits"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Avalanche Diodes"
+    },
+    {
+      "category": "Display Modules / LED Drivers / Display Drivers",
+      "subcategory": "LED Drivers"
+    },
+    {
+      "category": "Displays",
+      "subcategory": "E-Ink Display"
+    },
+    {
+      "category": "Driver ICs",
+      "subcategory": "Darlington Transistor Array Driver"
+    },
+    {
+      "category": "Educational Kits",
+      "subcategory": "Modules"
+    },
+    {
+      "category": "Electronic Tools/Instruments/Consumables",
+      "subcategory": "Pre-Ordered Products"
+    },
+    {
+      "category": "Embedded Peripheral ICs",
+      "subcategory": "Clock Generators, PLLs, Frequency Synthesizers"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "CPLD/FPGA"
+    },
+    {
+      "category": "Filters",
+      "subcategory": ""
+    },
+    {
+      "category": "Filters/EMI Optimization",
+      "subcategory": "Ferrite Beads"
+    },
+    {
+      "category": "Functional Modules",
+      "subcategory": "Modules"
+    },
+    {
+      "category": "Fuses",
+      "subcategory": "Cartridge Fuses"
+    },
+    {
+      "category": "Gallium Nitride (GaN) Devices",
+      "subcategory": "GaN Transistors(GaN HEMT)"
+    },
+    {
+      "category": "Global Sourcing Parts",
+      "subcategory": "Global Sourcing Parts"
+    },
+    {
+      "category": "Hardware Fasteners",
+      "subcategory": "Inductor Core"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "6-Lobe Pan Head Machine Screws"
+    },
+    {
+      "category": "Inductors & Chokes & Transformers",
+      "subcategory": ""
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Accessories - Inductors/Transformers"
+    },
+    {
+      "category": "Inductors/Coils/Transformers",
+      "subcategory": "Balun"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "AC Contactor"
+    },
+    {
+      "category": "Instrumentation/Meter",
+      "subcategory": "Electric Energy Meter"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Analog Switches - Special Purpose"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "Audio Interface ICs"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "2G/3G/4G/5G Modules"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "DIP Switches"
+    },
+    {
+      "category": "LED Drivers",
+      "subcategory": "Digital Tube Drivers"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Buffers, Drivers, Receivers, Transceivers"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "74 Series"
+    },
+    {
+      "category": "Magnetic Sensors",
+      "subcategory": "3D Magnetic Sensors"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "DDR SDRAM"
+    },
+    {
+      "category": "Motor Driver ICs",
+      "subcategory": "Brushed DC Motor Drivers"
+    },
+    {
+      "category": "Nixie Tube Driver/LED Driver",
+      "subcategory": "LCD Drivers"
+    },
+    {
+      "category": "Old Batch",
+      "subcategory": "Old Batch"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Audio Power OpAmps"
+    },
+    {
+      "category": "Optocoupler",
+      "subcategory": "Transistor Output Optocoupler"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Chip On Board (COB) Light Sources"
+    },
+    {
+      "category": "Optocouplers & LEDs & Infrared",
+      "subcategory": "Light Emitting Diodes (LED)"
+    },
+    {
+      "category": "Optocouplers/Photocouplers",
+      "subcategory": "Logic Output Optocoupler"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Chip On Board (COB) Light Sources"
+    },
+    {
+      "category": "Optoisolators",
+      "subcategory": "Gate Drive Optocoupler"
+    },
+    {
+      "category": "Other",
+      "subcategory": ""
+    },
+    {
+      "category": "Others",
+      "subcategory": ""
+    },
+    {
+      "category": "Photoelectric Devices",
+      "subcategory": "Light Emitting Diodes (LED)"
+    },
+    {
+      "category": "Power Management",
+      "subcategory": "Motor Driver ICs"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "AC-DC Controllers And Regulators"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "AC-DC Controllers & Regulators"
+    },
+    {
+      "category": "Power Modules",
+      "subcategory": "AC-DC Power Modules"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "AC-DC Controllers & Regulators"
+    },
+    {
+      "category": "Pushbutton Switches & Relays",
+      "subcategory": "Relays"
+    },
+    {
+      "category": "RF & Radio",
+      "subcategory": "Antennas"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "Antennas"
+    },
+    {
+      "category": "RTC/Clock Chip",
+      "subcategory": "Clock / Timing - Application Specific"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "Antennas"
+    },
+    {
+      "category": "Relays",
+      "subcategory": "Automotive Relays"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Aluminum Case/Porcelain Tube Resistance"
+    },
+    {
+      "category": "Resonators/Oscillators",
+      "subcategory": "Crystals"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Accelerometers"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "DI/DO Isolators"
+    },
+    {
+      "category": "Silicon Carbide (SiC) Devices",
+      "subcategory": "SiC Diodes"
+    },
+    {
+      "category": "Single Chip Microcomputer/Microcontroller",
+      "subcategory": "Digital Signal Processors / Controllers (DSPs/DSCs)"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "DIP Switches"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "ESD Protection Devices"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "BV Terminal"
+    },
+    {
+      "category": "Test",
+      "subcategory": "Button/Signal Lamp/Main Switch"
+    },
+    {
+      "category": "Transistors",
+      "subcategory": "Bipolar Transistors - BJT"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "Bipolar (BJT)"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "Bipolar Transistors - BJT"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Between Series Adapter Cables"
+    },
+    {
+      "category": "Wires And Cables",
+      "subcategory": "Cables And Wire Clips"
+    }
+  ],
+  "subcategories": [
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "ADC/DAC - Specialized"
+    },
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "Analog Front End (AFEs)"
+    },
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "Analog To Digital Converters (ADCs)"
+    },
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "Digital Potentiometers"
+    },
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "Digital To Analog Converters (DACs)"
+    },
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "Direct Digital Synthesis (DDS)"
+    },
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "Energy Metering ICs"
+    },
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "RMS-To-DC Converters"
+    },
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "Touch Screen Controllers"
+    },
+    {
+      "category": "ADC/DAC/Data Conversion",
+      "subcategory": "Voltage-To-Frequency / Frequency-To-Voltage Converters"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": ""
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "Analog Comparators"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "Audio Power OpAmps"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "Comparators"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "Current-Sensing Amplifiers"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "Differential OpAmps"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "FET InputAmplifiers"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "General Purpose Amplifiers"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "Low Noise OpAmps"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "Operational Amplifier"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "Precision OpAmps"
+    },
+    {
+      "category": "Amplifiers",
+      "subcategory": "Special Purpose Amplifiers"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Audio Amplifiers"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Comparators"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Current Sense Amplifiers"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Differential Amplifiers"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "FET Input Amplifiers"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "FET InputAmplifiers"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Instrumentation Amplifiers"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Linear - Analog Multipliers, Dividers"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Operational Amplifier"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Precision Op Amps"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Programmable / Variable Gain Amplifiers (PGA/VGA)"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Sample / Hold Amplifiers"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Special Purpose Amplifiers"
+    },
+    {
+      "category": "Amplifiers/Comparators",
+      "subcategory": "Video Amplifiers"
+    },
+    {
+      "category": "Analog ICs",
+      "subcategory": "Analog To Digital Converters (ADCs)"
+    },
+    {
+      "category": "Analog ICs",
+      "subcategory": "Digital To Analog Converters (DACs)"
+    },
+    {
+      "category": "Audio Components/Vibration Motors",
+      "subcategory": "Buzzers"
+    },
+    {
+      "category": "Audio Components/Vibration Motors",
+      "subcategory": "Microphones"
+    },
+    {
+      "category": "Audio Products / Vibration Motors",
+      "subcategory": "Buzzers"
+    },
+    {
+      "category": "Audio Products / Vibration Motors",
+      "subcategory": "MEMS Microphones"
+    },
+    {
+      "category": "Audio Products / Vibration Motors",
+      "subcategory": "Microphones"
+    },
+    {
+      "category": "Audio Products / Vibration Motors",
+      "subcategory": "Speakers"
+    },
+    {
+      "category": "Audio Products / Vibration Motors",
+      "subcategory": "Vibration Motors"
+    },
+    {
+      "category": "Audio Products/Micromotors",
+      "subcategory": "Buzzers"
+    },
+    {
+      "category": "Battery Products",
+      "subcategory": "Battery Holders, Clips & Contacts"
+    },
+    {
+      "category": "Bead/Filter/EMI Optimization",
+      "subcategory": "Active Filters"
+    },
+    {
+      "category": "Bead/Filter/EMI Optimization",
+      "subcategory": "Ceramic Filters"
+    },
+    {
+      "category": "Bead/Filter/EMI Optimization",
+      "subcategory": "Clamp Filters (Ferrite Core With Case)"
+    },
+    {
+      "category": "Bead/Filter/EMI Optimization",
+      "subcategory": "Common Mode Filters"
+    },
+    {
+      "category": "Bead/Filter/EMI Optimization",
+      "subcategory": "EMI Filters (LC, RC Networks)"
+    },
+    {
+      "category": "Bead/Filter/EMI Optimization",
+      "subcategory": "Ferrite Beads"
+    },
+    {
+      "category": "Bead/Filter/EMI Optimization",
+      "subcategory": "Filters - Feed Through Capacitors"
+    },
+    {
+      "category": "Bead/Filter/EMI Optimization",
+      "subcategory": "Switched Capacitor Filters"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Aluminum Electrolytic Capacitors (Can - Screw Terminals)"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Aluminum Electrolytic Capacitors - Leaded"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Aluminum Electrolytic Capacitors - SMD"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Capacitor Networks, Arrays"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Ceramic Disc Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Film Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Horn-Type Electrolytic Capacitor"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Horn-Type Electrolytic Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Hybrid Aluminum Electrolytic Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Mica And PTFE Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Multilayer Ceramic Capacitors MLCC - Leaded"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Multilayer Ceramic Capacitors MLCC - SMD/SMT"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Niobium Oxide Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Paper Dielectric Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Polymer Aluminum Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Polypropylene Film Capacitors (CBB)"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Safety Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Silicon Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Solid Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Suppression Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Tantalum Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Through Hole Ceramic Capacitors"
+    },
+    {
+      "category": "Capacitors",
+      "subcategory": "Trimmers, Variable Capacitors"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Automotive Fuses"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Disposable Fuses"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "ESD And Surge Protection (TVS/ESD)"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Electrostatic And Surge Protection (TVS/ESD)"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Fuse Holders"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Fuseholders"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Gas Discharge Tube Arresters (GDT)"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Glass Discharge Tubes"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "LED Protection"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Resettable Fuses"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Semiconductor Discharge Tubes (TSS)"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Surge Protection Devices (SPDs)"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "TVS"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Thermal Cutoffs (TCO)"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Thermal Fuses (TCO)"
+    },
+    {
+      "category": "Circuit Protection",
+      "subcategory": "Varistors"
+    },
+    {
+      "category": "Clock And Timing",
+      "subcategory": "Clock Buffers, Drivers"
+    },
+    {
+      "category": "Clock And Timing",
+      "subcategory": "Clock Generators / Frequency Synthesizers / PLL"
+    },
+    {
+      "category": "Clock And Timing",
+      "subcategory": "Timers / Clock Oscillators"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "555 Timers / Counters"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Application Specific Clock/Timing"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Clock And Data Recovery / Retiming"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Clock Buffers, Drivers, Distributors"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Clock Buffers/Drivers/Distributions"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Clock Generators / Frequency Synthesizers / PLL"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Clock Generators, PLLs, Frequency Synthesizers"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Jitter Attenuators"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Real Time Clocks"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Real-Time Clocks(RTC)"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Time Delays"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Timers"
+    },
+    {
+      "category": "Clock/Timing",
+      "subcategory": "Timers / Counters"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Analog Switches - Special Purpose"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Analog Switches / Multiplexers"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Audio Interface ICs"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "CAN ICs"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Digital Isolators"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Ethernet ICs"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "I/O Expanders"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Interface - PCIs / PCIEs"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Interface - Specialized"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "LIN Transceivers"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "LVDS ICs"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Pre-Ordered Chips"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "RS-485/RS-422 ICs"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "RS232 ICs"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Security Verification / Encryption ICs"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Serializers / Deserializers"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Signal Buffers, Repeaters, Splitters"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Telecommunication Interface ICs"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "UART"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "USB ICs"
+    },
+    {
+      "category": "Communication Interface Chip/UART/485/232",
+      "subcategory": "Video Interface ICs"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "AC Power Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "AC Power Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "AC/DC Power Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Audio & Video Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Audio Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Audio Connectors (Headphones)"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Automobile Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Backplane Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Banana Connectors / Alligator Clips"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Banana Connectors/Alligator Clips"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Barrier Terminal Blocks"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Battery Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Blade / Shrapnel Contact Battery Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Board-To-Board And Backplane Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Button And Strip Battery Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Card Edge Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Circular Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Circular Connectors & Cable Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Circular DIN Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Coaxial Connectors (RF)"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Cold-Pressed Terminals"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Cold-Pressed?Terminals"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Connector Accessories"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Connector Housings"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Connector Shells"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Connectors - Housings"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "D-Sub / VGA Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "D-Sub / VGA Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "D-Sub Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "D-Sub/DVI/HDMI Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "DC Power Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "DIN41612 Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "DVI Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "DisplayPort (DP) Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Edgeboard Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Ethernet Connectors / Modular Connectors (RJ45 RJ11)"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Ethernet Connectors/Modular Connectors (RJ45 RJ11)"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "FFC Cable (Flexible Flat Cable)"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "FFC, FPC (Flat Flexible) Connector Assemblies"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "FFC/FPC Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Feed-Voltage/Radio-Frequency Insulator"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Female Headers"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Fiber Optic Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "HDMI Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Hard Disk Connector (SAS/SATA/M.2)"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Housing Contact"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Housings (Wire To Board / Wire To Wire )"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "IC / Transistor Socket"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "IC Sockets"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "IDC Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "IEEE 1394 / Firewire Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Line Pressing Terminals"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Memory Connector (DDR)"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Mezzanine Connectors (Board To Board)"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Micro-Match Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Optical Module Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "PCB Welding Terminal"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "PCI / PCIe Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Pin / Jack"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Pin Header & Female Header"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Pin Headers"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Pluggable System Terminal Block"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Pogo Pin Spring Probe Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Pre-Ordered Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "RCA Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "RF Connectors / Coaxial Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Radio-Frequency Insulator"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Rectangular Connectors Housings"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "SD Card / Memory Card Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "SD Card Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "SIM Card Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Screw Terminal"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Screw Terminal Blocks"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Shunts, Jumpers"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Spring Clamp System Terminal Block"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Test Points / Test Rings"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "USB Connectors"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Wire To Board / Wire To Wire Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Wire To Board Connector"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "Wiring Quick-Connect Terminals"
+    },
+    {
+      "category": "Connectors",
+      "subcategory": "XLR (Cannon) Connectors"
+    },
+    {
+      "category": "Consumables",
+      "subcategory": "Heat Shrink Tubing"
+    },
+    {
+      "category": "Consumables",
+      "subcategory": "Holders/Clips"
+    },
+    {
+      "category": "Consumables",
+      "subcategory": "MetalProducts*SmtCopperSheets"
+    },
+    {
+      "category": "Consumables And Auxiliary Materials",
+      "subcategory": "Metal Products * SMT Copper Sheet"
+    },
+    {
+      "category": "Crystal Oscillator/Oscillator/Resonator",
+      "subcategory": "Crystals"
+    },
+    {
+      "category": "Crystal Oscillator/Oscillator/Resonator",
+      "subcategory": "Oscillators"
+    },
+    {
+      "category": "Crystal Oscillator/Oscillator/Resonator",
+      "subcategory": "Pre-Programmed Oscillators"
+    },
+    {
+      "category": "Crystal Oscillator/Oscillator/Resonator",
+      "subcategory": "SAW Resonators"
+    },
+    {
+      "category": "Crystal Oscillator/Oscillator/Resonator",
+      "subcategory": "Temperature Compensated Crystal Oscillators (TCXOs)"
+    },
+    {
+      "category": "Crystal Oscillator/Oscillator/Resonator",
+      "subcategory": "Voltage-Controlled Crystal Oscillators (VCXOs)"
+    },
+    {
+      "category": "Crystals",
+      "subcategory": "SMD Crystal Resonators"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Ceramic Resonators"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Crystal Oscillators"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Crystals"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Digitally Controlled Oscillators(DCOs)"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Oscillators"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Oven Controlled Crystal Oscillators (OCXOs)"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Programmable Oscillators"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "SAW Oscillators"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "SAW Resonators"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Spread Spectrum Oscillators(SSOs)"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Temperature Compensated Crystal Oscillators (TCXO)"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Temperature Sensing Resonators"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Voltage Controlled Oscillators (VCOs)"
+    },
+    {
+      "category": "Crystals, Oscillators, Resonators",
+      "subcategory": "Voltage-Controlled Crystal Oscillators (VCXOs)"
+    },
+    {
+      "category": "Crystals/Oscillators/Resonators",
+      "subcategory": "Crystals"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "ADCs/DACs - Special Purpose"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "Analog Front End (AFE)"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "Analog To Digital Converters (ADC)"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "Digital Potentiometers"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "Digital To Analog Converters (DAC)"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "Direct Digital Synthesis (DDS)"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "Energy Metering"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "RMS To DC Converters"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "Touch Screen Controllers"
+    },
+    {
+      "category": "Data Acquisition",
+      "subcategory": "V/F And F/V Converters"
+    },
+    {
+      "category": "Data Converters",
+      "subcategory": "Analog Switches & Multiplexers"
+    },
+    {
+      "category": "Data Converters",
+      "subcategory": "Analog To Digital Converters (ADCs)"
+    },
+    {
+      "category": "Data Converters",
+      "subcategory": "Voltage-To-Frequency / Frequency-To-Voltage Converters"
+    },
+    {
+      "category": "Development Boards & Tools",
+      "subcategory": "Development Boards & Kits"
+    },
+    {
+      "category": "Development Boards & Tools",
+      "subcategory": "Programmers, Emulators, And Debuggers"
+    },
+    {
+      "category": "Development Boards & Tools",
+      "subcategory": "Raspberry Pi"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Avalanche Diodes"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Bridge Rectifiers"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Diodes - ESD"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Diodes - Fast Recovery Rectifiers"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Diodes - General Purpose"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Diodes - Rectifiers - Fast Recovery"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Diodes - Rectifiers - Hyperfast"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Diodes - Variable Capacitance"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Diodes Rectifiers Fast Recovery"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Discharge Tubes (GDT/TSS)"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "ESD Protection Devices"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Fast Recovery / High Efficiency Diodes"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Fast Recovery/High Efficiency Diode"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "High Effic Rectifier"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Schottky Barrier Diodes (SBD)"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Schottky Diodes"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Super Barrier Rectifiers (SBR)"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Super Barrier Rectifier（SBR）"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Switching Diode"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Switching Diodes"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "TVS"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Trigger Diodes"
+    },
+    {
+      "category": "Diodes",
+      "subcategory": "Zener Diodes"
+    },
+    {
+      "category": "Display Modules / LED Drivers / Display Drivers",
+      "subcategory": "LED Drivers"
+    },
+    {
+      "category": "Displays",
+      "subcategory": "E-Ink Display"
+    },
+    {
+      "category": "Displays",
+      "subcategory": "LCD Screen"
+    },
+    {
+      "category": "Displays",
+      "subcategory": "LED Dot Matrix And Cluster"
+    },
+    {
+      "category": "Displays",
+      "subcategory": "LED Segment Displays"
+    },
+    {
+      "category": "Displays",
+      "subcategory": "OLED Display"
+    },
+    {
+      "category": "Driver ICs",
+      "subcategory": "Darlington Transistor Array Driver"
+    },
+    {
+      "category": "Driver ICs",
+      "subcategory": "Driver ICs"
+    },
+    {
+      "category": "Driver ICs",
+      "subcategory": "IGBT"
+    },
+    {
+      "category": "Driver ICs",
+      "subcategory": "LED Drivers"
+    },
+    {
+      "category": "Driver ICs",
+      "subcategory": "Motor Drivers"
+    },
+    {
+      "category": "Educational Kits",
+      "subcategory": "Modules"
+    },
+    {
+      "category": "Educational Kits",
+      "subcategory": "V-Audio Modules"
+    },
+    {
+      "category": "Electronic Tools/Instruments/Consumables",
+      "subcategory": "Pre-Ordered Products"
+    },
+    {
+      "category": "Embedded Peripheral ICs",
+      "subcategory": "Clock Generators, PLLs, Frequency Synthesizers"
+    },
+    {
+      "category": "Embedded Peripheral ICs",
+      "subcategory": "I/O Expansion"
+    },
+    {
+      "category": "Embedded Peripheral ICs",
+      "subcategory": "Microprocessor & Microcontroller Supervisors"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "CPLD/FPGA"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "Digital Signal Processors (DSP/DSC)"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "Digital Signal Processors / Controllers (DSPs/DSCs)"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "Microcontroller Units (MCUs/MPUs/SOCs)"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "Microcontrollers (MCU/MPU/SOC)"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "NUVOTON"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "NXP MCU"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "Pre-Ordered MCUs"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "Programmable Logic Device (CPLDs/FPGAs)"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "ST Microelectronics"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "STC"
+    },
+    {
+      "category": "Embedded Processors & Controllers",
+      "subcategory": "TI MCU"
+    },
+    {
+      "category": "Filters",
+      "subcategory": ""
+    },
+    {
+      "category": "Filters",
+      "subcategory": "Active Filters"
+    },
+    {
+      "category": "Filters",
+      "subcategory": "Ceramic Filters"
+    },
+    {
+      "category": "Filters",
+      "subcategory": "Clamp Filters (Ferrite Core With Case)"
+    },
+    {
+      "category": "Filters",
+      "subcategory": "Common Mode Filters"
+    },
+    {
+      "category": "Filters",
+      "subcategory": "Crystal Filters"
+    },
+    {
+      "category": "Filters",
+      "subcategory": "EMC Filters"
+    },
+    {
+      "category": "Filters",
+      "subcategory": "EMI/RFI Filters (LC, RC Networks)"
+    },
+    {
+      "category": "Filters",
+      "subcategory": "Feed Through Capacitors"
+    },
+    {
+      "category": "Filters",
+      "subcategory": "Ferrite Beads"
+    },
+    {
+      "category": "Filters",
+      "subcategory": "Noise Suppressors"
+    },
+    {
+      "category": "Filters",
+      "subcategory": "Switched Capacitor Filters"
+    },
+    {
+      "category": "Filters/EMI Optimization",
+      "subcategory": "Ferrite Beads"
+    },
+    {
+      "category": "Functional Modules",
+      "subcategory": "Modules"
+    },
+    {
+      "category": "Functional Modules",
+      "subcategory": "V-Audio Modules"
+    },
+    {
+      "category": "Functional Modules",
+      "subcategory": "Wireless Modules"
+    },
+    {
+      "category": "Fuses",
+      "subcategory": "Cartridge Fuses"
+    },
+    {
+      "category": "Fuses",
+      "subcategory": "Fuses With Leads (Through Hole)"
+    },
+    {
+      "category": "Fuses",
+      "subcategory": "PTC Resettable Fuses"
+    },
+    {
+      "category": "Fuses",
+      "subcategory": "Surface Mount Fuses"
+    },
+    {
+      "category": "Gallium Nitride (GaN) Devices",
+      "subcategory": "GaN Transistors(GaN HEMT)"
+    },
+    {
+      "category": "Global Sourcing Parts",
+      "subcategory": "Global Sourcing Parts"
+    },
+    {
+      "category": "Hardware Fasteners",
+      "subcategory": "Inductor Core"
+    },
+    {
+      "category": "Hardware Fasteners",
+      "subcategory": "LED Isolation Column"
+    },
+    {
+      "category": "Hardware Fasteners",
+      "subcategory": "Patch Round Nut"
+    },
+    {
+      "category": "Hardware Fasteners",
+      "subcategory": "Shielding Clip"
+    },
+    {
+      "category": "Hardware Fasteners",
+      "subcategory": "Spring"
+    },
+    {
+      "category": "Hardware Fasteners",
+      "subcategory": "Studs & Screws"
+    },
+    {
+      "category": "Hardware Fasteners",
+      "subcategory": "TapeMagneticBeads"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "6-Lobe Pan Head Machine Screws"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Angular Contact Ball Bearings"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Cylindrical Roller Bearings"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Deep Groove Ball Bearings"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Flat Washers"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Hex Nut"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Hex Socket Cylindrical Head Screw"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Hex Socket Cylindrical Head Tri-Combination"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Internal Threaded Hex Stud"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Knurled Studs"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Other Hardware"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Other Nuts"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Other Seals"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Other Studs"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "PC Board Isolation Column"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Countersunk Flat Tail Self-Tapping Screws"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Half Round Head Self-Tapping Screws"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Large Flat Head Machine Screws"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Large Flat Head Self-Tapping Screws"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Pan Head Machine Screws"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Pan Head Machine Screws Tri-Combination"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Pan Head Screw And Bounce Pad Combination"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Pan Head Screws With Collar"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Pan Head Self-Tapping Screws"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Pan Head With Self-Tapping Nails"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Recessed Countersunk Machine Screws"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Phillips Round-Headed, Flat-Tailed Self-Tapping Screws"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Press Spring"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "SMD Round Nut"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "SMT Hex Nut Post"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Self-Clinching Studs"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Shielding Clips"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Single-Ended Hex Stud"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Spherical Roller Bearings"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Springs"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Studs & Screws"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Through-Hole Insert Round Nuts"
+    },
+    {
+      "category": "Hardware/Fasteners/Sealing",
+      "subcategory": "Washers & Retaining Rings"
+    },
+    {
+      "category": "Inductors & Chokes & Transformers",
+      "subcategory": ""
+    },
+    {
+      "category": "Inductors & Chokes & Transformers",
+      "subcategory": "Inductors (SMD)"
+    },
+    {
+      "category": "Inductors & Chokes & Transformers",
+      "subcategory": "Power Inductors"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Accessories - Inductors/Transformers"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Adjustable Inductors"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Audio Transformers"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Color Ring Inductors / Through Hole Inductors"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Current Sense Transformers"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Inductors (SMD)"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Power Inductors"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Power Transformer"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Power Transformers"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Pre-Ordered RLCs"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Pulse Transformers"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Pulse Transformers(LAN)"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "RJ45 Transformer"
+    },
+    {
+      "category": "Inductors, Coils, Chokes",
+      "subcategory": "Wireless Charging Coils"
+    },
+    {
+      "category": "Inductors/Coils/Transformers",
+      "subcategory": "Balun"
+    },
+    {
+      "category": "Inductors/Coils/Transformers",
+      "subcategory": "Color Ring Inductors/Through Hole Inductors"
+    },
+    {
+      "category": "Inductors/Coils/Transformers",
+      "subcategory": "Current Transformers"
+    },
+    {
+      "category": "Inductors/Coils/Transformers",
+      "subcategory": "Inductors (SMD)"
+    },
+    {
+      "category": "Inductors/Coils/Transformers",
+      "subcategory": "Power Inductors"
+    },
+    {
+      "category": "Inductors/Coils/Transformers",
+      "subcategory": "Power Transformer"
+    },
+    {
+      "category": "Inductors/Coils/Transformers",
+      "subcategory": "Pre-Ordered RLCs"
+    },
+    {
+      "category": "Inductors/Coils/Transformers",
+      "subcategory": "Pulse Transformers"
+    },
+    {
+      "category": "Inductors/Coils/Transformers",
+      "subcategory": "RJ45 Transformer"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "AC Contactor"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Antenna"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Antenna Spring"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "AntennaShrapnel"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Battery Connector"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "BatteryConnector"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Button Header"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Buzzer/Electronic Beeper"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Buzzers"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Ceramic Antenna"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Cold Press Terminals/Terminal Blocks"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Cold-Pressed Terminals"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Connecting Accessories"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Connector Accessories"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Contactor Accessories"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Cooling Fan"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Electromechanical Contactors"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Encoders"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Fuse"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Heat Sink / Cooling Fin"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Heat Sink/Heatsink"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Interface Relays"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Intermediate Relays"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Limit Switchs,Travel Switchs"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Micro Switch"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Other Industrial Control Products"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Other Sensors"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Overload Relay"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Plug"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Plug/Socket/Wiring Board"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Power Connector / Plug Connector"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Power Connectors"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Power Module/Power Supply"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Power Supply Module"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Power Supply Module,Power Supplies"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Proximity Sensors,Proximity Switches"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Push Button Switch"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Pushbutton Switches"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Relays"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Safety Relays"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Surge Protectors,Lightning Arrester"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Switching Power Supply"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Tact Switchs,Keypad Switches"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Tactile Switch/Push Button Switch"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Terminal  Accessories"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Terminal Strips"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Thermal Relays"
+    },
+    {
+      "category": "Industrial Control Electrical",
+      "subcategory": "Ultra-High Voltage Capacitors"
+    },
+    {
+      "category": "Instrumentation/Meter",
+      "subcategory": "Electric Energy Meter"
+    },
+    {
+      "category": "Instrumentation/Meter",
+      "subcategory": "Frequency Meter"
+    },
+    {
+      "category": "Instrumentation/Meter",
+      "subcategory": "Power Factor Meter"
+    },
+    {
+      "category": "Instrumentation/Meter",
+      "subcategory": "Power Meter"
+    },
+    {
+      "category": "Instrumentation/Meter",
+      "subcategory": "Voltmeter"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Analog Switches - Special Purpose"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Analog Switches / Multiplexers"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Analog Switches, Multiplexers"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Audio Interface ICs"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "CAN Controllers"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "CAN Transceivers"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Ethernet Controllers"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Ethernet Switches"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Ethernet Transceivers"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "I/O Expanders"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Interface - PCIs / PCIEs"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Interface - Specialized"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "LIN Transceivers"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "LVDS ICs"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Pre-Ordered Chips"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "RS-485 / RS-422 ICs"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "RS-485/RS-422 ICs"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "RS232 ICs"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Security Verification / Encryption ICs"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Serializers, Deserializers"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Signal Buffers, Repeaters, Splitters"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Telecom Interface ICs"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "UART"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "USB Converters"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "USB HUB Controllers"
+    },
+    {
+      "category": "Interface",
+      "subcategory": "Video Interface ICs"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "Audio Interface ICs"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "Digital Isolators"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "Ethernet ICs"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "Interface - Direct Digital Synthesis (DDS)"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "Interface ICs"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "LVDS ICs"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "Pre-Ordered Chips"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "RS-485 & RS-422"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "RS-485/RS-422 ICs"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "RS232 ICs"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "Telecommunication Interface ICs"
+    },
+    {
+      "category": "Interface ICs",
+      "subcategory": "USB ICs"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "2G/3G/4G/5G Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "Bluetooth Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "CAN Bus Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "Ethernet Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "GNSS Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "LoRa Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "RF Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "RFID Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "RS232 Bus Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "RS485 Bus Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "USB Conversion Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "USB Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "WiFi Modules"
+    },
+    {
+      "category": "IoT/Communication Modules",
+      "subcategory": "ZigBee Modules"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "DIP Switches"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "Microswitches"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "Push Switches"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "Push Switches - Horizontal Type"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "Rocker Switches"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "Rotary Encoders"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "Rotary Switches"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "Slide Switches"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "Switch Accessories Or Caps"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "Tactile Switches"
+    },
+    {
+      "category": "Key/Switch",
+      "subcategory": "Toggle Switches"
+    },
+    {
+      "category": "LED Drivers",
+      "subcategory": "Digital Tube Drivers"
+    },
+    {
+      "category": "LED Drivers",
+      "subcategory": "LCD Drivers"
+    },
+    {
+      "category": "LED Drivers",
+      "subcategory": "LED Drivers"
+    },
+    {
+      "category": "LED Drivers",
+      "subcategory": "LED Drivers(Automotive)"
+    },
+    {
+      "category": "LED Drivers",
+      "subcategory": "LED Drivers(RGB)"
+    },
+    {
+      "category": "LED Drivers",
+      "subcategory": "Laser Drivers"
+    },
+    {
+      "category": "LED Drivers",
+      "subcategory": "Lighting Drivers & Controllers"
+    },
+    {
+      "category": "LED Drivers",
+      "subcategory": "OLED Drivers"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Buffers, Drivers, Receivers, Transceivers"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Counters, Dividers"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Digital Comparators"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "FIFOs Memory"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Flip Flops"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Inverters"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Latches"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Logic Gates"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Monostable Multivibrators"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Parity Generators And Checkers"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Shift Registers"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Signal Switches / Encoders & Decoders / Multiplexers"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Signal Switches, Multiplexers, Decoders"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Specialty Logic"
+    },
+    {
+      "category": "Logic",
+      "subcategory": "Translators, Level Shifters"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "74 Series"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Buffer/Driver/Transceiver"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "CPLD & FPGA"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Counters / Dividers"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Flip Flops"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Gates"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Gates And Inverters"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Inverters"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Latches"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Level Translators,  Shifters"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Logic-Buffers, Drivers, Receivers, Transceivers"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Monostable Multivibrators"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Shifting Register"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Signal Switches / Encoders & Decoders / Multiplexers"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Special Logic ICs"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Timer"
+    },
+    {
+      "category": "Logic ICs",
+      "subcategory": "Translators / Level Shifters"
+    },
+    {
+      "category": "Magnetic Sensors",
+      "subcategory": "3D Magnetic Sensors"
+    },
+    {
+      "category": "Magnetic Sensors",
+      "subcategory": "Current Sensors"
+    },
+    {
+      "category": "Magnetic Sensors",
+      "subcategory": "Hall Switches"
+    },
+    {
+      "category": "Magnetic Sensors",
+      "subcategory": "Linear Hall Sensors"
+    },
+    {
+      "category": "Magnetic Sensors",
+      "subcategory": "Magnetic Angle Sensors"
+    },
+    {
+      "category": "Magnetic Sensors",
+      "subcategory": "Reed Switches"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "DDR SDRAM"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "DRAM"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "EEPROM"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "EMMC"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "FLASH"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "FRAM"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "Font Chips"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "IButton Memory"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "Memory - Configuration Proms For FPGAs"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "Memory - Serial MCP (Multi Chip Package)"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "Memory Controllers"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "NAND FLASH"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "NOR FLASH"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "Non-Volatile Memory (ROM)"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "Random Access Memory (RAM)"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "SDRAM"
+    },
+    {
+      "category": "Memory",
+      "subcategory": "SRAM"
+    },
+    {
+      "category": "Motor Driver ICs",
+      "subcategory": "Brushed DC Motor Drivers"
+    },
+    {
+      "category": "Motor Driver ICs",
+      "subcategory": "Brushless DC (BLDC) Motor Driver"
+    },
+    {
+      "category": "Motor Driver ICs",
+      "subcategory": "Gate Drivers"
+    },
+    {
+      "category": "Motor Driver ICs",
+      "subcategory": "Relay / Coil Drivers"
+    },
+    {
+      "category": "Motor Driver ICs",
+      "subcategory": "Stepper Motor Driver"
+    },
+    {
+      "category": "Nixie Tube Driver/LED Driver",
+      "subcategory": "LCD Drivers"
+    },
+    {
+      "category": "Nixie Tube Driver/LED Driver",
+      "subcategory": "LED Display Drivers"
+    },
+    {
+      "category": "Nixie Tube Driver/LED Driver",
+      "subcategory": "LED Drivers"
+    },
+    {
+      "category": "Nixie Tube Driver/LED Driver",
+      "subcategory": "Led Segment Display"
+    },
+    {
+      "category": "Nixie Tube Driver/LED Driver",
+      "subcategory": "Other Lighting Drivers"
+    },
+    {
+      "category": "Old Batch",
+      "subcategory": "Old Batch"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Audio Power OpAmps"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Comparators"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Current-Sensing Amplifiers"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Differential OpAmps"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "FET InputAmplifiers"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Instrumentation OpAmps"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Isolation Amplifiers"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Operational Amplifier"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Precision OpAmps"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Programmable/Variable Gain Amplifiers (PGAs/VGAs)"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Special Purpose Amplifiers"
+    },
+    {
+      "category": "Operational Amplifier/Comparator",
+      "subcategory": "Video Amplifiers"
+    },
+    {
+      "category": "Optocoupler",
+      "subcategory": "Transistor Output Optocoupler"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Chip On Board (COB) Light Sources"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Fiber Optical Transceivers"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Infrared (IR) LEDs"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Laser Diodes"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Light Emitting Diodes (LED)"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Optocouplers - Logic Output"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Optocouplers - Phototransistor Output"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Optocouplers - Thyristor Signal Output"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Photoelectric Thyristor (Solid State Relays)"
+    },
+    {
+      "category": "Optocoupler/LED/Digital Tube/Photoelectric Device",
+      "subcategory": "Solid State Relays - MOS Output (PhotoMOS)"
+    },
+    {
+      "category": "Optocouplers & LEDs & Infrared",
+      "subcategory": "Light Emitting Diodes (LED)"
+    },
+    {
+      "category": "Optocouplers & LEDs & Infrared",
+      "subcategory": "Optocouplers"
+    },
+    {
+      "category": "Optocouplers/Photocouplers",
+      "subcategory": "Logic Output Optocoupler"
+    },
+    {
+      "category": "Optocouplers/Photocouplers",
+      "subcategory": "Transistor Output Optocoupler"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Chip On Board (COB) Light Sources"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Fiber Optical Transceivers"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Infrared LED Emitters"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Infrared Remote Receiver (IRM)"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "IrDA Transceiver Modules"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "LED Indication - Discrete"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Laser Diodes"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Light Emitting Diodes (LED)"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Optoelectronics Accessories"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Photodiodes"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Photointerrupters - Slot Type - Transistor Output"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Phototransistors"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "RGB LEDs"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "RGB LEDs(Built-In IC)"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Reflective Optical Interrupters"
+    },
+    {
+      "category": "Optoelectronics",
+      "subcategory": "Ultraviolet LEDs (UVLED)"
+    },
+    {
+      "category": "Optoisolators",
+      "subcategory": "Gate Drive Optocoupler"
+    },
+    {
+      "category": "Optoisolators",
+      "subcategory": "Logic Output Optoisolators"
+    },
+    {
+      "category": "Optoisolators",
+      "subcategory": "Solid State Relays (MOS Output)"
+    },
+    {
+      "category": "Optoisolators",
+      "subcategory": "Solid State Relays (Triac Output)"
+    },
+    {
+      "category": "Optoisolators",
+      "subcategory": "Transistor, Photovoltaic Output Optoisolators"
+    },
+    {
+      "category": "Optoisolators",
+      "subcategory": "Triac, SCR Output Optoisolators"
+    },
+    {
+      "category": "Other",
+      "subcategory": ""
+    },
+    {
+      "category": "Other",
+      "subcategory": "Comprehensive Electronic"
+    },
+    {
+      "category": "Other",
+      "subcategory": "Electronic Cable"
+    },
+    {
+      "category": "Other",
+      "subcategory": "Electronic Wire"
+    },
+    {
+      "category": "Others",
+      "subcategory": ""
+    },
+    {
+      "category": "Others",
+      "subcategory": "Global Sourcing Parts"
+    },
+    {
+      "category": "Others",
+      "subcategory": "New Arrivals"
+    },
+    {
+      "category": "Others",
+      "subcategory": "No Specification For Star Making Plan"
+    },
+    {
+      "category": "Others",
+      "subcategory": "Others"
+    },
+    {
+      "category": "Photoelectric Devices",
+      "subcategory": "Light Emitting Diodes (LED)"
+    },
+    {
+      "category": "Power Management",
+      "subcategory": "Motor Driver ICs"
+    },
+    {
+      "category": "Power Management",
+      "subcategory": "Power Modules"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "AC-DC Controllers And Regulators"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Battery Management"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Charge Pumps"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Current Source / Constant Current Source"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "DC-DC Converters"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Isolated DC/DC Converters"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Isolators - Gate Drivers"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Leakage Protection ICs"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Motor Driver ICs"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "ORing Controllers"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "PFC Controllers"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Power Distribution Switches"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Power Management - Specialized"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Power Over Ethernet (PoE) Controllers"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Supervisor And Reset ICs"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Synchronous Rectifier Controllers"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Transformer Drivers"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "USB PD"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Voltage Reference"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators"
+    },
+    {
+      "category": "Power Management (PMIC)",
+      "subcategory": "Wireless Charge-Discharge ICs"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "AC-DC Controllers & Regulators"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Battery Management ICs"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "DC-DC Converters"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Dropout Regulators(LDO)"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Gate Drive ICs"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Linear Voltage Regulators"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Linear Voltage Regulators (LDO)"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Low Dropout Regulators(LDO)"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Motor Driver ICs"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "PMIC - Battery Management"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "PMIC - Power Distribution Switches"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Power Distribution Switches"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Power Management Specialized - PMIC"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Power Modules"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Switching Controllers"
+    },
+    {
+      "category": "Power Management ICs",
+      "subcategory": "Voltage References"
+    },
+    {
+      "category": "Power Modules",
+      "subcategory": "AC-DC Power Modules"
+    },
+    {
+      "category": "Power Modules",
+      "subcategory": "DC-DC Power Modules"
+    },
+    {
+      "category": "Power Modules",
+      "subcategory": "Isolated Power Modules"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "AC-DC Controllers & Regulators"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Battery Management ICs"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Current Source/Constant Current Source"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "DC-DC Controllers"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "DC-DC Converters"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Gate Drive ICs"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Linear Voltage Regulators (LDO)"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Monitors & Reset Circuits"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Motor Driver ICs"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Power Distribution Switches"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Power Management Specialized - PMIC"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Power Modules"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Power Over Ethernet Controllers"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Voltage References"
+    },
+    {
+      "category": "Power Supply Chip",
+      "subcategory": "Wireless Charge-Discharge ICs"
+    },
+    {
+      "category": "Pushbutton Switches & Relays",
+      "subcategory": "Relays"
+    },
+    {
+      "category": "Pushbutton Switches & Relays",
+      "subcategory": "Tactile Switches"
+    },
+    {
+      "category": "RF & Radio",
+      "subcategory": "Antennas"
+    },
+    {
+      "category": "RF & Radio",
+      "subcategory": "RF Chips"
+    },
+    {
+      "category": "RF & Radio",
+      "subcategory": "RF Transceiver ICs"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "Antennas"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "Balun"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "Duplexers"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "Low Noise Amplifiers (LNA) - RF"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Amplifiers"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Attenuators"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Cables"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Detectors"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Directional Coupler"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Filters"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Front End Circuits"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Misc ICs And Modules"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Mixers"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Modulators And Demodulators"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Power Amplifiers"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Power Splitters / Combiners"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Switches"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RF Transceiver ICs"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "RFID ICs"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "SAW Filters"
+    },
+    {
+      "category": "RF And Wireless",
+      "subcategory": "Tunable Filters"
+    },
+    {
+      "category": "RTC/Clock Chip",
+      "subcategory": "Clock / Timing - Application Specific"
+    },
+    {
+      "category": "RTC/Clock Chip",
+      "subcategory": "Clock And Data Recovery / Retiming"
+    },
+    {
+      "category": "RTC/Clock Chip",
+      "subcategory": "Clock Buffers, Drivers"
+    },
+    {
+      "category": "RTC/Clock Chip",
+      "subcategory": "Clock Generators / Frequency Synthesizers / PLL"
+    },
+    {
+      "category": "RTC/Clock Chip",
+      "subcategory": "Clock Jitter Cleaners & Synchronizers"
+    },
+    {
+      "category": "RTC/Clock Chip",
+      "subcategory": "Delay Lines"
+    },
+    {
+      "category": "RTC/Clock Chip",
+      "subcategory": "Real-Time Clocks (RTC)"
+    },
+    {
+      "category": "RTC/Clock Chip",
+      "subcategory": "Timers / Clock Oscillators"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "Antennas"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "Low Noise Amplifiers (LNA) - RF"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Amplifiers"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Attenuator"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Chips"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Detectors"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Filters"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Front End Circuits"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Misc ICs And Modules"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Mixers"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Modulators / Demodulator"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Power Amplifiers"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Switches"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "RF Transceiver ICs"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "Radio Frequency Cable"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "SAW Filters"
+    },
+    {
+      "category": "Radio Frequency Chip/Antenna",
+      "subcategory": "Voltage Controlled Oscillators (VCO)"
+    },
+    {
+      "category": "Relays",
+      "subcategory": "Automotive Relays"
+    },
+    {
+      "category": "Relays",
+      "subcategory": "Magnetic Latching Relays"
+    },
+    {
+      "category": "Relays",
+      "subcategory": "Power Relays"
+    },
+    {
+      "category": "Relays",
+      "subcategory": "Reed Relays"
+    },
+    {
+      "category": "Relays",
+      "subcategory": "Relay Sockets & Accessories"
+    },
+    {
+      "category": "Relays",
+      "subcategory": "Relay Sockets And Accessories"
+    },
+    {
+      "category": "Relays",
+      "subcategory": "Signal Relays"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Aluminum Case/Porcelain Tube Resistance"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Chip Resistor - Surface Mount"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Current Sense Resistors / Shunt Resistors"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Current Sense Resistors/Shunt Resistors"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Low Resistors & Current Sense Resistors - Surface Mount"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Metal Film Resistor (TH)"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "NTC Thermistors"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Potentiometers, Variable Resistors"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Resistor Networks & Arrays"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Resistor Networks, Arrays"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Through Hole Resistors"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Variable Resistors/Potentiometers"
+    },
+    {
+      "category": "Resistors",
+      "subcategory": "Varistors"
+    },
+    {
+      "category": "Resonators/Oscillators",
+      "subcategory": "Crystals"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Accelerometers"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Ambient Light Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Attitude Sensor/Gyroscope"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Capacitive Sensor IC"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Current Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Fiber Optic / Laser Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Float Level Senors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Flow Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Force Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Force Sensors, Load Cells"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Gas Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Hall Sensor"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Heart Rate Sensor"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Heart Rate Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Human Body Sensing Sensor"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Humidity, Moisture Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Image Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Infrared Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "NTC Thermistors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "PTC Thermistors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Photointerrupters - Slot Type - Logic Output"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Photointerrupters - Slot Type - Transistor Output"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Photoresistors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Position Sensor"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Position Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Pressure Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Proximity Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Reflective Optical Interrupters"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Sensor Modules"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Specialized Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Temperature And Humidity Sensor"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Temperature Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Thermostat Switches"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Touch Sensors"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Ultrasonic Receivers, Transmitters"
+    },
+    {
+      "category": "Sensors",
+      "subcategory": "Vibration Sensors"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "DI/DO Isolators"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Digital Isolators"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Digital Isolators (With Power)"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "I2C Isolators"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated ADCs"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated ADCs With Power"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated CAN Transceivers"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated CAN Transceivers (With Power)"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated Comparators"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated I2C (With Power)"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated LVDS Buffers"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated RS-232 Transceivers"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated RS-232 Transceivers (With Power)"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated RS-485/422 Transceivers"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated RS-485/422 Transceivers With Power"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated USB ICs"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolated USB ICs With Power"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolation Amplifiers"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolation Amplifiers With Power"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Isolation-Solid State Relays"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "Optocoupler Emulator (Optocoupler Replacement)"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "SPI Isolators"
+    },
+    {
+      "category": "Signal Isolation Devices",
+      "subcategory": "SPI Isolators With Power"
+    },
+    {
+      "category": "Silicon Carbide (SiC) Devices",
+      "subcategory": "SiC Diodes"
+    },
+    {
+      "category": "Silicon Carbide (SiC) Devices",
+      "subcategory": "Silicon Carbide Field Effect Transistor (MOSFET)"
+    },
+    {
+      "category": "Single Chip Microcomputer/Microcontroller",
+      "subcategory": "Digital Signal Processors / Controllers (DSPs/DSCs)"
+    },
+    {
+      "category": "Single Chip Microcomputer/Microcontroller",
+      "subcategory": "Microcontroller Units (MCUs/MPUs/SOCs)"
+    },
+    {
+      "category": "Single Chip Microcomputer/Microcontroller",
+      "subcategory": "Pre-Ordered MCUs"
+    },
+    {
+      "category": "Single Chip Microcomputer/Microcontroller",
+      "subcategory": "Programmable Logic Device (CPLDs/FPGAs)"
+    },
+    {
+      "category": "Single Chip Microcomputer/Microcontroller",
+      "subcategory": "TI MCU"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "DIP Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Keylock Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Limit Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Mechanical Keyboard Shaft"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Metal Dome Pot"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Multi-Directional Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Multidirectional Switch"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Navigation Switches, Joystick"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Pushbutton Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Rocker Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Rotary Coding Switch"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Rotary Encoders"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Rotary Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Rotary Wheel Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Slide Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Specialty Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Switch Accessories / Caps"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Tactile Switches"
+    },
+    {
+      "category": "Switches",
+      "subcategory": "Toggle Switches"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "ESD Protection Devices"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "Electrostatic And Surge Protection (TVS/ESD)"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "Fuse Holders"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "Fuses"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "Gas Discharge Tube (GDT)"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "Resettable Fuses"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "Surge Suppressors"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "TVS"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "Thermal Cutoffs (TCO)"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "Thyristor Surge Suppressors (TSS)"
+    },
+    {
+      "category": "TVS/Fuse/Board Level Protection",
+      "subcategory": "Varistors"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "BV Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "EN Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "Knife Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "Magnetic Wire Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "PCB Welding Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "Quick Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "Ring Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "SC Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "SMD Quick Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "Spade Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "Square Copper Terminal"
+    },
+    {
+      "category": "Terminal",
+      "subcategory": "Wire Pin Terminal"
+    },
+    {
+      "category": "Test",
+      "subcategory": "Button/Signal Lamp/Main Switch"
+    },
+    {
+      "category": "Test",
+      "subcategory": "MRO PreSaleOfNewProducts"
+    },
+    {
+      "category": "Test",
+      "subcategory": "Other"
+    },
+    {
+      "category": "Transistors",
+      "subcategory": "Bipolar Transistors - BJT"
+    },
+    {
+      "category": "Transistors",
+      "subcategory": "Darlington Transistor Arrays"
+    },
+    {
+      "category": "Transistors",
+      "subcategory": "Darlington Transistors"
+    },
+    {
+      "category": "Transistors",
+      "subcategory": "Digital Transistors"
+    },
+    {
+      "category": "Transistors",
+      "subcategory": "IGBTs"
+    },
+    {
+      "category": "Transistors",
+      "subcategory": "Junction Field-Effect Transistor，JFET"
+    },
+    {
+      "category": "Transistors",
+      "subcategory": "MOSFET"
+    },
+    {
+      "category": "Transistors",
+      "subcategory": "MOSFETs"
+    },
+    {
+      "category": "Transistors",
+      "subcategory": "Transistors (NPN/PNP)"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "Bipolar (BJT)"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "Darlington Transistor Arrays"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "Darlington Transistors"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "Digital Transistors"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "IGBT Transistors / Modules"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "Intelligent Power Modules (IPM)"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "JFETs"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "MOSFETs"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "Pre-Ordered Transistors"
+    },
+    {
+      "category": "Transistors/Thyristors",
+      "subcategory": "Thyristors (SCR)/Modules"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "Bipolar Transistors - BJT"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "Darlington Transistor Arrays"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "Darlington Transistors"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "Digital Transistors"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "IGBTs"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "Intelligent Power Modules (IPM)"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "JFETs"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "MOSFETs"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "Pre-Ordered Transistors"
+    },
+    {
+      "category": "Triode/MOS Tube/Transistor",
+      "subcategory": "TRIACs"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Between Series Adapter Cables"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Cable Supports And Fasteners"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Cable Terminations And Intermediate Connectors"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Cable/ModularCable"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "CablesAndClamps"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Coaxial Cables (RF)"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Fiber Optic Cables"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Fixed Attenuator"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Flat Flex Ribbon Jumpers, Cables"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Heat Shrink Boots, Caps"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Jumper Wire/EnameledWire/Pre-Crimped Leads"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Labels, Labeling"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Network Cables"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "PowerCord/BrakeCord/Line Cables And Extension Cords"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Rectangular Cable Assemblies"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Smart Cables"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "Specialized Cable Assemblies"
+    },
+    {
+      "category": "Wire/Cable/DataCable",
+      "subcategory": "USB Cables/Data Cables"
+    },
+    {
+      "category": "Wires And Cables",
+      "subcategory": "Cables And Wire Clips"
+    },
+    {
+      "category": "Wires And Cables",
+      "subcategory": "Dupont Wire / Terminal Block Wire / Electronic Wire"
+    },
+    {
+      "category": "Wires And Cables",
+      "subcategory": "Hub/Adapter"
+    }
+  ],
+  "incomplete_categories": [],
+  "source_note": "Distinct category and subcategory names verified against the JLCSearch D1 catalog using the public endpoint query. No part records copied."
+}

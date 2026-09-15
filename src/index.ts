@@ -1,14 +1,19 @@
-import { CATEGORY_BY_PATH, CATEGORY_DEFINITIONS } from "./categories"
+import taxonomy from "./jlc/taxonomy.json"
+import {
+  COMPATIBLE_ROUTES,
+  queryCompatibleCategory,
+  queryCompatibleSearch,
+} from "./jlc/catalog"
+import {
+  renderD1TablePage,
+  renderHomePage as renderReferenceHomePage,
+} from "./jlc/render"
+import { CATEGORY_BY_PATH } from "./categories"
 import { queryCatalog } from "./catalog"
 import { syncMetadata, refreshInventory } from "./catalog-sync"
-import { getIndexedCategories, getPackageIndex } from "./parts-store"
+import { getPackageIndex } from "./parts-store"
 import { SearchInputError } from "./search-request"
-import {
-  renderErrorPage,
-  renderHomePage,
-  renderSearchPage,
-  renderSimpleTablePage,
-} from "./render"
+import { renderErrorPage, renderSearchPage } from "./render"
 import type { Env, SearchPayload } from "./types"
 
 export { TiGateway } from "./ti-gateway"
@@ -134,28 +139,22 @@ const handleCategories = async (
   url: URL,
   origin: string | null,
 ): Promise<Response> => {
-  const indexed = await getIndexedCategories(env)
-  const categories = CATEGORY_DEFINITIONS.map((category) => ({
-    group: category.group,
-    category: category.label,
-    subcategory: category.query,
-    path: category.path,
-  }))
-  if (isJsonRequest(request, url)) {
-    return jsonResponse({ categories, indexed_categories: indexed }, origin, {
-      cacheStatus: "INDEX",
-    })
-  }
-  return htmlResponse(
-    renderSimpleTablePage(
-      "/categories/list",
-      "Categories",
-      categories,
-      url.toString(),
-    ),
-    origin,
-    { cacheStatus: "INDEX" },
-  )
+  const categoryName = url.searchParams.get("category_name")
+  const categories = categoryName
+    ? taxonomy.subcategories.filter((row) => row.category === categoryName)
+    : taxonomy.categories
+  return isJsonRequest(request, url)
+    ? jsonResponse({ categories }, origin, { cacheStatus: "INDEX" })
+    : htmlResponse(
+        renderD1TablePage(
+          "/categories/list",
+          { categories },
+          Object.fromEntries(url.searchParams),
+          url.pathname + url.search,
+        ),
+        origin,
+        { cacheStatus: "INDEX" },
+      )
 }
 
 const handlePackageIndex = async (
@@ -164,16 +163,22 @@ const handlePackageIndex = async (
   url: URL,
   origin: string | null,
 ): Promise<Response> => {
-  const footprints = await getPackageIndex(env)
+  const footprints = (await getPackageIndex(env))
+    .filter(
+      (p) =>
+        url.pathname.startsWith("/package_index/") || p.num_components > 10,
+    )
+    .map(({ stock, ...part }) => part)
+    .sort((a, b) => b.num_components - a.num_components)
   if (isJsonRequest(request, url)) {
     return jsonResponse({ footprints }, origin, { cacheStatus: "INDEX" })
   }
   return htmlResponse(
-    renderSimpleTablePage(
+    renderD1TablePage(
       "/footprint_index/list",
-      "Package Index",
-      footprints,
-      url.toString(),
+      { footprints },
+      {},
+      url.pathname + url.search,
     ),
     origin,
     { cacheStatus: "INDEX" },
@@ -217,9 +222,18 @@ const handleFetch = async (
     return new Response(null, { status: 204, headers })
   }
   if (request.method !== "GET") {
-    return jsonResponse({ error: { message: "Method Not Allowed" } }, origin, {
-      status: 405,
-    })
+    return jsonResponse(
+      {
+        error: {
+          error_code: "method_not_allowed",
+          message: "Method Not Allowed",
+        },
+      },
+      origin,
+      {
+        status: 405,
+      },
+    )
   }
 
   const pathname = url.pathname.replace(/\.json$/, "")
@@ -227,11 +241,95 @@ const handleFetch = async (
     return new Response("User-agent: *\nDisallow: /api/\n", {
       headers: { "content-type": "text/plain; charset=utf-8" },
     })
+  if (pathname === "/_d1/health") {
+    const rows = await env.DB.prepare(
+      "SELECT ti_product_number FROM parts LIMIT 1",
+    ).all()
+    return jsonResponse(
+      { ok: true, d1: true, use_d1: "true", rows: rows.results.length },
+      origin,
+    )
+  }
+  if (
+    pathname.startsWith("/api/footprinter_strings/") ||
+    pathname.startsWith("/api/easyeda_components/")
+  ) {
+    const id = pathname.split("/").at(-1) ?? ""
+    const valid =
+      /^c?[0-9]+$/i.test(id) &&
+      Number.isSafeInteger(Number(id.replace(/^c/i, ""))) &&
+      Number(id.replace(/^c/i, "")) > 0
+    if (valid && pathname.startsWith("/api/easyeda_components/"))
+      return jsonResponse(
+        {
+          easyeda_component_details: {
+            lcsc: Number(id.replace(/^c/i, "")),
+            easyeda_uuid: null,
+            fetched_at: null,
+            easyeda_json: null,
+          },
+          error: {
+            error_code: "component_not_found",
+            message: "No EasyEDA data is provided by the TI API",
+          },
+        },
+        origin,
+        { status: 404 },
+      )
+    return jsonResponse(
+      valid
+        ? {
+            ok: false,
+            error: { error_code: "not_found", message: "Not Found" },
+          }
+        : {
+            error: {
+              error_code: "invalid_lcsc",
+              message:
+                "LCSC must be a positive integer with an optional C prefix",
+            },
+          },
+      origin,
+      { status: valid ? 404 : 400 },
+    )
+  }
   if (pathname === "/health") {
     return jsonResponse({ ok: true }, origin)
   }
   if (pathname === "/") {
-    return htmlResponse(renderHomePage(), origin)
+    return htmlResponse(renderReferenceHomePage(), origin)
+  }
+  if (
+    COMPATIBLE_ROUTES.includes(pathname) ||
+    pathname === "/components/list" ||
+    pathname === "/api/search"
+  ) {
+    const params = Object.fromEntries(url.searchParams)
+    const result = COMPATIBLE_ROUTES.includes(pathname)
+      ? await queryCompatibleCategory(env, pathname, params)
+      : {
+          data: await queryCompatibleSearch(
+            env,
+            params,
+            pathname === "/api/search",
+          ),
+          filterOptions: {},
+        }
+    const response = isJsonRequest(request, url)
+      ? jsonResponse(result.data, origin, { cacheStatus: "INDEX" })
+      : htmlResponse(
+          renderD1TablePage(
+            pathname,
+            result.data,
+            params,
+            url.pathname.replace(/\.json$/, "") + url.search,
+            result.filterOptions,
+          ),
+          origin,
+          { cacheStatus: "INDEX" },
+        )
+    response.headers.set("x-catalog-complete", "false")
+    return response
   }
   if (pathname === "/categories/list") {
     return handleCategories(request, env, url, origin)
@@ -255,7 +353,11 @@ const handleFetch = async (
 
   const json = isJsonRequest(request, url)
   return json
-    ? jsonResponse({ error: { message: "Not Found" } }, origin, { status: 404 })
+    ? jsonResponse(
+        { ok: false, error: { error_code: "not_found", message: "Not Found" } },
+        origin,
+        { status: 404 },
+      )
     : htmlResponse(renderErrorPage(pathname, 404, "Not Found"), origin, {
         status: 404,
       })
@@ -268,7 +370,17 @@ export default {
     ctx: ExecutionContext,
   ): Promise<Response> {
     try {
-      return await handleFetch(request, env, ctx)
+      const response = await handleFetch(request, env, ctx)
+      if (
+        ["1", "true"].includes(
+          new URL(request.url).searchParams.get("cachebust")?.toLowerCase() ??
+            "",
+        )
+      ) {
+        response.headers.set("cache-control", "no-store")
+        response.headers.set("x-cache-bust", "1")
+      }
+      return response
     } catch (error) {
       const status = error instanceof SearchInputError ? 400 : 500
       const message =

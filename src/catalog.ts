@@ -8,7 +8,11 @@ export const hydratePart = (raw: string): NormalizedPart => {
   const part = JSON.parse(raw) as NormalizedPart
   return {
     ...part,
-    ...standardFields(part.parametrics ?? {}),
+    ...Object.fromEntries(
+      Object.entries(standardFields(part.parametrics ?? {})).map(
+        ([name, value]) => [name, value ?? part[name] ?? null],
+      ),
+    ),
     num_pins: part.pin_count,
     price1: part.price_breaks?.find((b) => b.quantity === 1)?.price ?? null,
   }
