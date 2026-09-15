@@ -244,3 +244,41 @@ it("imports TI orderable names containing spaces and encodes their product URLs"
     "https://www.ti.com/product/LM109/part-details/LM109K%20STEEL%2FNOPB",
   )
 })
+
+it("disabled population cancels saved alarms and cannot be restarted by a tick", async () => {
+  const target = { ...env, TI_CATALOG_POPULATION_ENABLED: "false" }
+  const fetcher = vi.fn()
+  vi.stubGlobal("fetch", fetcher)
+  const stub = env.BULK_IMPORT.get(env.BULK_IMPORT.newUniqueId())
+  await runInDurableObject(stub, async (_instance, state) => {
+    const paused = new BulkCatalogImporter(state, target)
+    const job = {
+      status: "importing",
+      processed: 500,
+      nextChunk: 1,
+      chunks: 2,
+      nextDownloadAt: Date.now() + 86400_000,
+    }
+    await state.storage.put("job", job)
+    await state.storage.setAlarm(Date.now() + 3600_000)
+    await paused.alarm()
+    expect(await state.storage.getAlarm()).toBeNull()
+    expect(await state.storage.get("job")).toEqual(job)
+    expect(
+      await (
+        await paused.fetch(new Request("https://bulk/tick", { method: "POST" }))
+      ).json(),
+    ).toEqual({ scheduled: false, populationEnabled: false, alarm: null })
+    expect(
+      await (await paused.fetch(new Request("https://bulk/status"))).json(),
+    ).toMatchObject({
+      populationEnabled: false,
+      nextDownloadAt: null,
+      processed: 500,
+    })
+  })
+  await expect(
+    importCatalogChunk(target, [catalog.catalog[0]], Date.now()),
+  ).rejects.toThrow("Catalog population is disabled")
+  expect(fetcher).not.toHaveBeenCalled()
+})

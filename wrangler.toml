@@ -9,6 +9,7 @@ routes = [
 ]
 
 [vars]
+TI_CATALOG_POPULATION_ENABLED = "false"
 TI_CURRENCY = "USD"
 TI_CACHE_TTL_SECONDS = "86400"
 TI_STALE_TTL_SECONDS = "604800"
@@ -21,7 +22,7 @@ database_id = "555e3eac-a06e-4057-9110-93cabcbbaac7"
 migrations_dir = "migrations"
 
 [triggers]
-crons = ["17 */6 * * *", "*/15 * * * *", "2-57/5 * * * *"]
+crons = ["17 */6 * * *", "*/15 * * * *"]
 
 [[durable_objects.bindings]]
 name = "TI_GATEWAY"

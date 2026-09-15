@@ -7,6 +7,7 @@ export interface Env {
   TI_GATEWAY?: DurableObjectNamespace<TiGateway>
   TI_CLIENT_ID: string
   TI_CLIENT_SECRET: string
+  TI_CATALOG_POPULATION_ENABLED?: string
   TI_CURRENCY?: string
   TI_CACHE_TTL_SECONDS?: string
   TI_STALE_TTL_SECONDS?: string

@@ -39,6 +39,8 @@ export async function importCatalogChunk(
   records: Record<string, unknown>[],
   fetchedAt: number,
 ) {
+  if (env.TI_CATALOG_POPULATION_ENABLED !== "true")
+    throw new Error("Catalog population is disabled")
   let rejected = 0
   const rejectedSamples: Array<{ partNumber: string; reason: string }> = []
   for (let i = 0; i < records.length; i += 100) {
@@ -122,10 +124,24 @@ export async function importCatalogChunk(
 export class BulkCatalogImporter extends DurableObject<Env> {
   async fetch(request: Request) {
     if (request.method === "GET")
-      return Response.json(
-        (await this.ctx.storage.get<BulkState>("job")) ?? initial(),
-      )
+      return Response.json({
+        ...((await this.ctx.storage.get<BulkState>("job")) ?? initial()),
+        populationEnabled: this.env.TI_CATALOG_POPULATION_ENABLED === "true",
+        nextDownloadAt:
+          this.env.TI_CATALOG_POPULATION_ENABLED === "true"
+            ? ((await this.ctx.storage.get<BulkState>("job"))?.nextDownloadAt ??
+              0)
+            : null,
+      })
     if (request.method !== "POST") return new Response(null, { status: 405 })
+    if (this.env.TI_CATALOG_POPULATION_ENABLED !== "true") {
+      await this.ctx.storage.deleteAlarm()
+      return Response.json({
+        scheduled: false,
+        populationEnabled: false,
+        alarm: await this.ctx.storage.getAlarm(),
+      })
+    }
     // This object has no public route; only the scheduled Worker invokes it.
     if (!(await this.ctx.storage.getAlarm()))
       await this.ctx.storage.setAlarm(Date.now() + 1000)
@@ -133,6 +149,10 @@ export class BulkCatalogImporter extends DurableObject<Env> {
   }
 
   async alarm() {
+    if (this.env.TI_CATALOG_POPULATION_ENABLED !== "true") {
+      await this.ctx.storage.deleteAlarm()
+      return
+    }
     const job = (await this.ctx.storage.get<BulkState>("job")) ?? initial()
     try {
       if (job.status === "importing") {

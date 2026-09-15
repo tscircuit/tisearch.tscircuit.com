@@ -77,35 +77,23 @@ Other endpoints include `/categories/list`, `/package_index/list`, and `/health`
 
 ## Storage and background synchronization
 
-- **Bulk catalog import** downloads the TI Store catalog once daily using
-  `/v2/store/products/catalog?currency=USD&exclude-evms=true`. The shared gateway
-  reserves a separate four-hour-plus-one-minute interval before sending a request,
-  including failed attempts, across currencies and restarts. It streams the response
-  into private R2 chunks; no full-catalog JSON is buffered in Worker memory or the
-  gateway cache. Only a fully downloaded, validated snapshot is imported.
-- **Resumable D1 import** processes 500 saved records per Durable Object alarm,
-  using batches of 100 writes. Retrying a chunk is safe. Existing metadata and newer
-  inventory are preserved, and known categories can be reused for variants of the
-  same base product. Missing categories/specifications remain unknown until enriched.
-  Invalid records are counted as rejected. The previous snapshot is removed when
-  starting the next download; existing parts absent from a snapshot are retained.
-- **Bulk progress** is available at `/api/catalog/status`. `downloaded` and
-  `processed` count snapshot records, not unique D1 rows. The five-minute cron
-  wakes the importer; durable alarms handle progress and daily refreshes. The
-  status endpoint is read-only and cannot initiate TI requests.
+Catalog population is disabled with `TI_CATALOG_POPULATION_ENABLED = "false"`.
+The existing 67,549 parts are retained. New-part discovery, pending imports for
+unknown parts, bulk downloads, and bulk import alarms are disabled. Existing R2
+snapshots and discovery queues are retained without importing additional parts.
+
+The bulk importer remains available in the code for an explicit future opt-in.
+`/api/catalog/status` exposes the last import's counts and `populationEnabled`;
+`nextDownloadAt` is null while disabled. The endpoint cannot start an import.
 
 - **D1** stores normalized parts, specifications, prices, and inventory. FTS5
   indexes keyword searches; category, orderable/base part, and freshness indexes
   support catalog reads and refresh selection. Existing stored parts are retained
   when applying migrations.
-- **Scheduled discovery**, every six hours, queues up to 100 family products
-  with one metadata request. A D1 cursor and lease preserve progress across runs. Successful runs
-  advance the cursor; throttled runs retain data and back off. A completed family
-  is revisited after 30 days.
-- **Scheduled inventory refresh**, every 15 minutes, updates up to 20 of the
-  pending imports or oldest listings whose inventory is at least 24 hours old. It uses the Store
-  API only and preserves indexed specifications. Failed refreshes retain the
-  last successful inventory timestamp.
+- **Scheduled inventory refresh**, every 15 minutes, updates up to 20 existing
+  listings. Queued metadata is applied only to parts already in D1; otherwise the
+  oldest listings whose inventory is at least 24 hours old are refreshed. Failed
+  refreshes retain the last successful inventory timestamp.
 - **Scheduled specification refresh**, every six hours, enriches up to five
   indexed parts whose specifications have not been checked in 30 days. Inventory
   timestamps are preserved.
@@ -114,10 +102,10 @@ Other endpoints include `/categories/list`, `/package_index/list`, and `/health`
   Information metadata is cached for 30 days and Store inventory for 24 hours.
   Tokens are kept only in memory.
 
-Only scheduled jobs and the bulk importer contact TI. Public searches cannot exhaust TI quota.
+Only background jobs contact TI. Public searches cannot exhaust TI quota.
 TI's [published limits](https://www.ti.com/developer-api/store-api/reference/response-codes-rate-limits.html)
-include 2,000 Product Information requests per month, so discovery is deliberately
-bounded. Quota exhaustion can delay new imports, but existing pages remain
+include 2,000 Product Information requests per month, so specification refreshes are deliberately
+bounded. Quota exhaustion can delay refreshes, but existing pages remain
 available from D1.
 
 ## Development and deployment
