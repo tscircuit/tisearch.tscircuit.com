@@ -41,10 +41,10 @@ export async function importCatalogChunk(
 ) {
   let rejected = 0
   const rejectedSamples: Array<{ partNumber: string; reason: string }> = []
-  for (let i = 0; i < records.length; i += 50) {
+  for (let i = 0; i < records.length; i += 100) {
     const readAt = Date.now()
     const fresh: NormalizedPart[] = []
-    for (const store of records.slice(i, i + 50)) {
+    for (const store of records.slice(i, i + 100)) {
       try {
         fresh.push(normalizeProduct({ store }, env.TI_CURRENCY ?? "USD"))
       } catch (error) {
@@ -59,7 +59,7 @@ export async function importCatalogChunk(
     }
     if (!fresh.length) continue
     const slots = fresh.map(() => "?").join(",")
-    const existing = await env.DB.prepare(
+    const existingRequest = env.DB.prepare(
       `SELECT ti_product_number,raw_json,updated_at FROM parts WHERE ti_product_number IN (${slots})`,
     )
       .bind(...fresh.map((p) => p.ti_product_number))
@@ -68,16 +68,20 @@ export async function importCatalogChunk(
         raw_json: string
         updated_at: number
       }>()
-    const oldParts = new Map(
-      existing.results.map((row) => [row.ti_product_number, row]),
-    )
     // Reuse a known family for package variants of the same TI base product.
     // Do not guess categories from keywords or invent electrical specifications.
-    const families = await env.DB.prepare(
+    const familiesRequest = env.DB.prepare(
       `SELECT json_extract(raw_json,'$.generic_part_number') AS gpn,category,subcategory FROM parts WHERE json_extract(raw_json,'$.generic_part_number') IN (${slots}) AND category IS NOT NULL AND category!='' GROUP BY json_extract(raw_json,'$.generic_part_number') HAVING count(DISTINCT category)=1`,
     )
       .bind(...fresh.map((p) => p.generic_part_number))
       .all<{ gpn: string; category: string; subcategory: string }>()
+    const [existing, families] = await Promise.all([
+      existingRequest,
+      familiesRequest,
+    ])
+    const oldParts = new Map(
+      existing.results.map((row) => [row.ti_product_number, row]),
+    )
     const familyByGpn = new Map(families.results.map((row) => [row.gpn, row]))
     const parts: NormalizedPart[] = []
     for (const part of fresh) {

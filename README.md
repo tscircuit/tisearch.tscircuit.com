@@ -84,7 +84,7 @@ Other endpoints include `/categories/list`, `/package_index/list`, and `/health`
   into private R2 chunks; no full-catalog JSON is buffered in Worker memory or the
   gateway cache. Only a fully downloaded, validated snapshot is imported.
 - **Resumable D1 import** processes 500 saved records per Durable Object alarm,
-  using batches of 50 writes. Retrying a chunk is safe. Existing metadata and newer
+  using batches of 100 writes. Retrying a chunk is safe. Existing metadata and newer
   inventory are preserved, and known categories can be reused for variants of the
   same base product. Missing categories/specifications remain unknown until enriched.
   Invalid records are counted as rejected. The previous snapshot is removed when

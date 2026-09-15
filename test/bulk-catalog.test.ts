@@ -227,3 +227,20 @@ it("streams every matching part across D1 batches and applies API limits globall
   expect(html).not.toContain(">Next</a>")
   expect(fetch).not.toHaveBeenCalled()
 })
+
+it("imports TI orderable names containing spaces and encodes their product URLs", async () => {
+  const record = {
+    ...catalog.catalog[0],
+    tiPartNumber: "LM109K STEEL/NOPB",
+    genericPartNumber: "LM109",
+    buyNowUrl: undefined,
+  }
+  expect((await importCatalogChunk(env, [record], Date.now())).rejected).toBe(0)
+  const part = JSON.parse(
+    (await env.DB.prepare("SELECT raw_json FROM parts").first<any>()).raw_json,
+  )
+  expect(part.ti_product_number).toBe("LM109K STEEL/NOPB")
+  expect(part.product_url).toBe(
+    "https://www.ti.com/product/LM109/part-details/LM109K%20STEEL%2FNOPB",
+  )
+})
