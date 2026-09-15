@@ -188,3 +188,42 @@ it("does not publish a truncated snapshot to D1", async () => {
     },
   )
 })
+
+it("streams every matching part across D1 batches and applies API limits globally", async () => {
+  const records = Array.from({ length: 1103 }, (_, i) => ({
+    ...catalog.catalog[0],
+    tiPartNumber: `PART${i}`,
+    quantity: 42,
+    pinCount: i < 1100 ? 8 : 4,
+  }))
+  await importCatalogChunk(env, records, Date.now())
+  const { default: worker } = await import("../src/index")
+  const { createExecutionContext } = await import("cloudflare:test")
+  const get = (path: string) =>
+    worker.fetch(
+      new Request(`https://test${path}`),
+      env,
+      createExecutionContext(),
+    )
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockRejectedValue(new Error("No upstream calls during browsing")),
+  )
+  const all = await (await get("/components/list.json")).json<any>()
+  expect(all.components).toHaveLength(1103)
+  expect(new Set(all.components.map((p: any) => p.mfr)).size).toBe(1103)
+  expect(all.components.map((p: any) => p.mfr)).toEqual(
+    records.map((p) => p.tiPartNumber).sort(),
+  )
+  expect(
+    (await (await get("/api/search?limit=550")).json<any>()).components,
+  ).toHaveLength(550)
+  expect(
+    (await (await get("/components/list.json?num_pins=4")).json<any>())
+      .components,
+  ).toHaveLength(3)
+  const html = await (await get("/components/list")).text()
+  expect([...html.matchAll(/<tr>/g)]).toHaveLength(1104)
+  expect(html).not.toContain(">Next</a>")
+  expect(fetch).not.toHaveBeenCalled()
+})

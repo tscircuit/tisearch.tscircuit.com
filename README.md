@@ -16,7 +16,9 @@ TI authentication failures and rate limits therefore cannot block browsing.
 
 All matching stored parts appear together on one page. There are no Next or
 Previous controls, and legacy listing `limit`/`offset` parameters do not truncate
-results. Electrical filters apply to the full stored category.
+results. Electrical filters apply to the full stored category. General search
+responses stream from D1 in batches, keeping server memory bounded while returning
+one complete HTML page or JSON array.
 
 Search by orderable part number, base part number, product family, or keywords.
 Shared category pages include stored stock snapshots; general search returns

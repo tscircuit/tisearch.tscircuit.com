@@ -1,9 +1,6 @@
+import { searchResponseBody } from "./jlc/search-stream"
 import taxonomy from "./jlc/taxonomy.json"
-import {
-  COMPATIBLE_ROUTES,
-  queryCompatibleCategory,
-  queryCompatibleSearch,
-} from "./jlc/catalog"
+import { COMPATIBLE_ROUTES, queryCompatibleCategory } from "./jlc/catalog"
 import {
   renderD1TablePage,
   renderHomePage as renderReferenceHomePage,
@@ -306,22 +303,25 @@ const handleFetch = async (
   if (pathname === "/") {
     return htmlResponse(renderReferenceHomePage(), origin)
   }
-  if (
-    COMPATIBLE_ROUTES.includes(pathname) ||
-    pathname === "/components/list" ||
-    pathname === "/api/search"
-  ) {
+  if (pathname === "/components/list" || pathname === "/api/search") {
+    const json = isJsonRequest(request, url)
+    const body = await searchResponseBody(
+      env,
+      pathname,
+      Object.fromEntries(url.searchParams),
+      json,
+      url.pathname + url.search,
+    )
+    const template = json
+      ? jsonResponse({}, origin, { cacheStatus: "INDEX" })
+      : htmlResponse("", origin, { cacheStatus: "INDEX" })
+    const response = new Response(body, { headers: template.headers })
+    response.headers.set("x-catalog-complete", "false")
+    return response
+  }
+  if (COMPATIBLE_ROUTES.includes(pathname)) {
     const params = Object.fromEntries(url.searchParams)
-    const result = COMPATIBLE_ROUTES.includes(pathname)
-      ? await queryCompatibleCategory(env, pathname, params)
-      : {
-          data: await queryCompatibleSearch(
-            env,
-            params,
-            pathname === "/api/search",
-          ),
-          filterOptions: {},
-        }
+    const result = await queryCompatibleCategory(env, pathname, params)
     const response = isJsonRequest(request, url)
       ? jsonResponse(result.data, origin, { cacheStatus: "INDEX" })
       : htmlResponse(
