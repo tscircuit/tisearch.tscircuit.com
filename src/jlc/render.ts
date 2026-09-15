@@ -404,6 +404,7 @@ const renderCell = (
   row: Record<string, unknown>,
   column: string,
   value: unknown,
+  productUrls: Record<string, string>,
 ): string => {
   if (value === null || value === undefined || value === "") return ""
   if (column === "attributes") {
@@ -412,7 +413,18 @@ const renderCell = (
     return `<details><summary>${escapeHtml(summary)}</summary><div class="mt-1 whitespace-pre-wrap break-all">${escapeHtml(rawValue)}</div></details>`
   }
   if (column === "mfr" && typeof row.mfr === "string") {
-    return `<a href="https://www.ti.com/product/${encodeURIComponent(String(row.mfr))}">${escapeHtml(value)}</a>`
+    const target = productUrls[row.mfr] ?? row.product_url
+    try {
+      const url = new URL(String(target))
+      if (
+        url.protocol === "https:" &&
+        (url.hostname === "ti.com" || url.hostname.endsWith(".ti.com")) &&
+        !url.username &&
+        !url.password
+      )
+        return `<a href="${escapeHtml(url.href)}">${escapeHtml(value)}</a>`
+    } catch {}
+    return escapeHtml(value)
   }
   if (column === "price" || column === "price1") {
     return escapeHtml(formatPrice(value))
@@ -427,7 +439,10 @@ const renderCell = (
   return escapeHtml(value)
 }
 
-const renderTable = (rows: unknown[]): string => {
+const renderTable = (
+  rows: unknown[],
+  productUrls: Record<string, string>,
+): string => {
   if (rows.length === 0) return ""
   const firstRow = rows[0] as Record<string, unknown>
   const columns = Object.keys(firstRow)
@@ -444,7 +459,7 @@ const renderTable = (rows: unknown[]): string => {
       const cells = columns
         .map(
           (column) =>
-            `<td class="border border-gray-300 p-1">${renderCell(record, column, record[column])}</td>`,
+            `<td class="border border-gray-300 p-1">${renderCell(record, column, record[column], productUrls)}</td>`,
         )
         .join("")
       return `<tr>${cells}</tr>`
@@ -827,6 +842,7 @@ export const renderD1TablePage = (
   params: QueryParams,
   requestUrl?: string,
   filterOptions?: FilterOptions,
+  productUrls: Record<string, string> = {},
 ): string => {
   const responseKey =
     TABLE_RESPONSE_KEY[ROUTE_TO_TABLE[pathname] ?? ""] ||
@@ -850,7 +866,7 @@ export const renderD1TablePage = (
   }
 
   if (rows.length > 0) {
-    pageBody += renderTable(rows)
+    pageBody += renderTable(rows, productUrls)
   }
   pageBody += "</div>"
 

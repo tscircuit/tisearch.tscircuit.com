@@ -324,6 +324,7 @@ const handleFetch = async (
             params,
             url.pathname.replace(/\.json$/, "") + url.search,
             result.filterOptions,
+            "productUrls" in result ? result.productUrls : {},
           ),
           origin,
           { cacheStatus: "INDEX" },
