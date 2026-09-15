@@ -1,6 +1,9 @@
+import type { MetadataEnricher } from "./metadata-enricher"
 import type { BulkCatalogImporter } from "./bulk-catalog"
 import type { TiGateway } from "./ti-gateway"
 export interface Env {
+  METADATA_ENRICHMENT: DurableObjectNamespace<MetadataEnricher>
+  TI_METADATA_ENRICHMENT_ENABLED?: string
   TI_CATALOG: R2Bucket
   BULK_IMPORT: DurableObjectNamespace<BulkCatalogImporter>
   DB: D1Database

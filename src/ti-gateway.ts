@@ -197,7 +197,9 @@ export class TiGateway extends DurableObject<Env> {
         valid = true
       } catch {}
       const headers = new Headers(response.headers)
-      if (valid) {
+      // D.O. values are limited to 128 KiB. Large metadata pages are saved by
+      // the enrichment job in R2, rather than failing an otherwise valid call.
+      if (valid && new TextEncoder().encode(body).byteLength < 120_000) {
         const expiresAt =
           Date.now() +
           (response.status === 404

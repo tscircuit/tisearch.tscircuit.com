@@ -103,10 +103,38 @@ The bulk importer remains available in the code for an explicit future opt-in.
   Tokens are kept only in memory.
 
 Only background jobs contact TI. Public searches cannot exhaust TI quota.
-TI's [published limits](https://www.ti.com/developer-api/store-api/reference/response-codes-rate-limits.html)
-include 2,000 Product Information requests per month, so specification refreshes are deliberately
-bounded. Quota exhaustion can delay refreshes, but existing pages remain
-available from D1.
+The one-time metadata enrichment job is enabled with
+`TI_METADATA_ENRICHMENT_ENABLED = "true"`, independently of population.
+
+1. Scan TI Product Information (`/v1/products?Page=…&Size=100`), saving pages in
+   private R2 storage. Match orderable part numbers and update existing D1 rows only.
+2. Look up remaining unmatched orderable parts individually. A TI 404 is recorded
+   as unavailable and does not remove the stored part.
+3. Fetch missing electrical parametrics per orderable part. Reuse specifications
+   already stored; do not assume different package variants have identical ratings.
+
+`ti_information` preserves TI's original product details and `ti_family` preserves
+its family. `category_routes` lists matching existing routes using their family
+and electrical rules; `category_mapping_status` is `mapped` or `unresolved`.
+The existing public category taxonomy is unchanged. Unknown families remain
+searchable without guessed category assignments. Metadata is available through
+`/api/index/search?q=PART_NUMBER`; category APIs retain their existing schema.
+
+The MetadataEnricher Durable Object persists progress and runs at most 1,500
+metadata requests per rolling 24 hours, with two seconds between successful steps.
+The shared gateway also paces requests and enforces TI cooldowns. Large metadata
+pages are stored in R2 instead of exceeding Durable Object cache value limits.
+TI [documents a default Product Information allowance of 3,000 calls per day](https://www.ti.com/developer-api/product-information-api-suite/product-information-api.html);
+actual account limits and Retry-After responses take precedence. Full electrical
+enrichment can take weeks because it requires individual product requests.
+
+`/api/enrichment/status` reports progress, quota backoff, metadata coverage, and
+mapped part counts. It is read-only and cannot start work. Scheduled ticks resume
+the job; it stops after all existing rows have been checked. Setting the enrichment
+flag to false disables its alarms. The old discovery/import queues remain paused
+while enrichment is active. Periodic specification refresh resumes after this job
+finishes. Inventory refresh continues throughout; metadata writes preserve stock,
+prices, and inventory timestamps and retry concurrent updates safely.
 
 ## Development and deployment
 

@@ -1,7 +1,7 @@
+import { updateExistingInventory, updateMetadata } from "./metadata-store"
 import { CATEGORY_DEFINITIONS } from "./categories"
 import { TI_ROUTE_FAMILIES } from "./jlc/catalog"
 import { hydratePart } from "./catalog"
-import { standardFields } from "./jlc-compat"
 import { normalizeProduct } from "./normalize"
 import { saveParts } from "./parts-store"
 import { TiClient, TiApiError } from "./ti-client"
@@ -84,9 +84,12 @@ export const discoverCatalog = async (env: Env) => {
 export const refreshInventory = async (env: Env) => {
   const client = getClient(env)
   const pending = await env.DB.prepare(
-    "SELECT catalog_pending.ti_product_number,information_json,parts.raw_json FROM catalog_pending LEFT JOIN parts USING(ti_product_number) WHERE ? = 1 OR parts.ti_product_number IS NOT NULL ORDER BY created_at,catalog_pending.ti_product_number LIMIT 20",
+    "SELECT catalog_pending.ti_product_number,information_json,parts.raw_json FROM catalog_pending LEFT JOIN parts USING(ti_product_number) WHERE ? = 1 OR (parts.ti_product_number IS NOT NULL AND ? = 0) ORDER BY created_at,catalog_pending.ti_product_number LIMIT 20",
   )
-    .bind(env.TI_CATALOG_POPULATION_ENABLED === "true" ? 1 : 0)
+    .bind(
+      env.TI_CATALOG_POPULATION_ENABLED === "true" ? 1 : 0,
+      env.TI_METADATA_ENRICHMENT_ENABLED === "true" ? 1 : 0,
+    )
     .all<{
       ti_product_number: string
       information_json: string
@@ -136,35 +139,15 @@ export const refreshInventory = async (env: Env) => {
     const old = hydratePart(row.raw_json)
     try {
       const result = await client.inventory(old.ti_product_number)
-      const fresh = normalizeProduct(
-        { store: result.store, parametrics: old.parametrics },
-        env.TI_CURRENCY ?? "USD",
-      )
-      await saveParts(
+      await updateExistingInventory(
         env,
-        [
-          {
-            ...fresh,
-            category: old.category,
-            subcategory: old.subcategory,
-            parameters: { ...old.parameters, ...fresh.parameters },
-          },
-        ],
+        old.ti_product_number,
+        result.store,
         result.updatedAt,
       )
     } catch (error) {
       if (error instanceof TiApiError && error.status === 404) {
-        await saveParts(env, [
-          {
-            ...old,
-            stock: 0,
-            normally_stocking: false,
-            price: null,
-            price1: null,
-            price_quantity: null,
-            price_breaks: [],
-          },
-        ])
+        await updateExistingInventory(env, old.ti_product_number, null)
         continue
       }
       console.warn(
@@ -187,28 +170,7 @@ export const refreshSpecifications = async (env: Env) => {
     const old = hydratePart(row.raw_json)
     try {
       const parametrics = await client.specifications(old.ti_product_number)
-      // Reuse the normalizer to turn TI parametrics into readable parameter values.
-      const readable = normalizeProduct({
-        store: { tiPartNumber: old.ti_product_number, quantity: old.stock },
-        parametrics,
-      }).parameters
-      await saveParts(
-        env,
-        [
-          {
-            ...old,
-            ...standardFields(parametrics),
-            parametrics,
-            parameters: { ...old.parameters, ...readable },
-          },
-        ],
-        row.updated_at,
-        [
-          env.DB.prepare(
-            "UPDATE parts SET metadata_checked_at=? WHERE ti_product_number=?",
-          ).bind(Date.now(), old.ti_product_number),
-        ],
-      )
+      await updateMetadata(env, [{ pn: old.ti_product_number, parametrics }])
     } catch (error) {
       if (error instanceof TiApiError && error.status === 404) {
         await env.DB.prepare(
@@ -229,5 +191,14 @@ export const refreshSpecifications = async (env: Env) => {
 
 export const syncMetadata = async (env: Env) => {
   await discoverCatalog(env)
+  // The one-time enrichment job owns initial specs; retain periodic refresh
+  // after it finishes without competing for its quota while it is active.
+  if (env.TI_METADATA_ENRICHMENT_ENABLED === "true") {
+    const status = await env.METADATA_ENRICHMENT.get(
+      env.METADATA_ENRICHMENT.idFromName("existing-parts-v1"),
+    ).fetch("https://metadata/status")
+    if (((await status.json()) as { phase: string }).phase !== "complete")
+      return
+  }
   await refreshSpecifications(env)
 }

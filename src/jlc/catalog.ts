@@ -5,7 +5,7 @@ import {
   matchesSpecFilter,
 } from "../jlc-compat"
 import { hydratePart } from "../catalog"
-import { CATEGORY_DEFINITIONS } from "../categories"
+import { CATEGORY_DEFINITIONS, CATEGORY_BY_PATH } from "../categories"
 import type { Env, NormalizedPart } from "../types"
 import { compatibilityFields } from "./ti-fields"
 import {
@@ -621,4 +621,26 @@ function taxonomyForPart(part: NormalizedPart, selected?: string) {
     category: entry?.category ?? part.category,
     subcategory: entry?.subcategory ?? part.subcategory,
   }
+}
+
+// Reuse the same family and specification rules as the existing category pages.
+export function categoryRoutesForPart(part: NormalizedPart): string[] {
+  const row = compatibilityFields(part)
+  const routes = COMPATIBLE_ROUTES.filter((path) => {
+    const table = ROUTE_TO_TABLE[path] ?? SPECIAL_TABLES[path]
+    return (
+      TI_ROUTE_FAMILIES[table]?.some((family) =>
+        part.category.toLowerCase().startsWith(family.toLowerCase()),
+      ) && belongs(row, table)
+    )
+  })
+  for (const category of CATEGORY_BY_PATH.values())
+    if (
+      part.category.toLowerCase().startsWith(category.query.toLowerCase()) &&
+      Object.entries(category.defaultFilters ?? {}).every(([name, value]) =>
+        matchesSpecFilter(part, name, value),
+      )
+    )
+      routes.push(category.path)
+  return [...new Set(routes)].sort()
 }

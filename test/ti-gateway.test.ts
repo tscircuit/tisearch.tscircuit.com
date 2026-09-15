@@ -229,3 +229,23 @@ describe("shared TI gateway", () => {
     })
   })
 })
+
+it("forwards large metadata pages without exceeding the Durable Object value limit", async () => {
+  const gateway = stub()
+  const body = JSON.stringify({
+    Content: [{ Description: "x".repeat(150_000) }],
+    TotalElements: 1,
+  })
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockImplementation(async () => new Response(body)),
+  )
+  await runInDurableObject(gateway, async (instance: TiGateway, state) => {
+    const response = await instance.fetch(
+      new Request(url, { headers: { authorization: "Bearer fixture" } }),
+    )
+    expect(response.status).toBe(200)
+    expect(await response.text()).toBe(body)
+    expect(await state.storage.get(`response:${url}`)).toBeUndefined()
+  })
+})
