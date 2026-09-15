@@ -66,7 +66,12 @@ export function compatibilityFields(
     const factor = unit ? factors[unit][units] : 1
     return factor === undefined ? null : Number(raw) * factor
   }
-  const protocols = text("Interface", "Digital interface", "Control interface")
+  const protocols = text(
+    "Interface",
+    "Interface type",
+    "Digital interface",
+    "Control interface",
+  )
   const has = (protocol: string) => {
     const direct = number([protocol, `Number of ${protocol}s`])
     if (direct !== null) return direct > 0

@@ -69,7 +69,14 @@ export function standardFields(
       spec("Resolution", "Resolution (Bits)", "Resolution (bits)"),
     ),
     num_channels: number(
-      spec("Number of channels", "Channels", "DAC channels", "ADC channels"),
+      spec(
+        "Number of channels",
+        "Number of input channels",
+        "Number of output channels",
+        "Channels",
+        "DAC channels",
+        "ADC channels",
+      ),
     ),
     output_voltage_min: number(vout, "Min"),
     output_voltage_max: number(vout, "Max"),

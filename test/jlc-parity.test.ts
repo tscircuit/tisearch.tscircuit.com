@@ -193,6 +193,18 @@ it("matches JLC numeric, boolean, range, alias and exclusion operators including
 })
 
 it("handles switch channel and processor interface filters with TI field/unit translation", async () => {
+  await seed("Precision ADCs", "ADC08100", {
+    parametrics: {
+      "Number of input channels": { Value: "1" },
+      "Interface type": { Value: "Parallel CMOS, TTL" },
+    },
+  })
+  const adc = (await json("/adcs/list.json?num_channels=1")).adcs
+  expect(adc).toHaveLength(1)
+  expect(adc[0]).toMatchObject({
+    num_channels: 1,
+    has_parallel_interface: true,
+  })
   await seed("Analog & precision switches & muxes", "MUX1", {
     parametrics: {
       "Number of channels": { Value: "1" },
