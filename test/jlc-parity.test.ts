@@ -201,6 +201,48 @@ it("matches JLC numeric, boolean, range, alias and exclusion operators including
   ).toBe(true)
 })
 
+it("separates analog switches from muxes using configuration in JSON and HTML", async () => {
+  const switches = [
+    ["1P1G66QDBVRG4Q1", "1:1 SPST", "1"],
+    ["1P1G3157QDBVRQ1", "2:1 SPDT", "1"],
+    ["CD4066BE", "1:1 SPST", "4"],
+  ]
+  const muxes = [
+    ["CD4052BPWRG4", "4:1", "2"],
+    ["CD4051BM96G3", "8:1", "1"],
+    ["CD4067BPW", "16:1", "1"],
+  ]
+  for (const [mpn, configuration, channels] of [...switches, ...muxes]) {
+    await seed("Analog & precision switches & muxes", mpn, {
+      parametrics: {
+        Configuration: { Value: configuration },
+        "Number of channels": { Value: channels },
+      },
+    })
+  }
+  await seed("Analog & precision switches & muxes", "UNKNOWN", {
+    description: "Analog switches & muxes",
+    parametrics: { "Number of channels": { Value: "1" } },
+  })
+  const result = await json("/analog_switches/list.json")
+  expect(result.switches.map((p: any) => p.mfr).sort()).toEqual(
+    switches.map(([mpn]) => mpn).sort(),
+  )
+  expect(
+    (await json("/analog_switches/list.json?channels=4")).switches.map(
+      (p: any) => p.mfr,
+    ),
+  ).toEqual(["CD4066BE"])
+  const html = await (await get("/analog_switches/list")).text()
+  for (const [mpn] of switches) expect(html).toContain(mpn)
+  for (const [mpn] of muxes) expect(html).not.toContain(mpn)
+  expect(html).not.toContain("UNKNOWN")
+  const multiplexers = (await json("/analog_multiplexers/list.json"))
+    .multiplexers
+  for (const [mpn] of muxes)
+    expect(multiplexers.map((p: any) => p.mfr)).toContain(mpn)
+})
+
 it("handles switch channel and processor interface filters with TI field/unit translation", async () => {
   await seed("Precision ADCs", "ADC08100", {
     parametrics: {
@@ -216,6 +258,7 @@ it("handles switch channel and processor interface filters with TI field/unit tr
   })
   await seed("Analog & precision switches & muxes", "MUX1", {
     parametrics: {
+      Configuration: { Value: "1:1 SPST" },
       "Number of channels": { Value: "1" },
       Ron: { Value: "250", Unit: "mohm" },
     },

@@ -8,6 +8,7 @@ import { hydratePart } from "../catalog"
 import { CATEGORY_DEFINITIONS, CATEGORY_BY_PATH } from "../categories"
 import type { Env, NormalizedPart } from "../types"
 import { compatibilityFields } from "./ti-fields"
+import { isAnalogSwitch } from "./analog-switch"
 import {
   ROUTE_TO_TABLE,
   TABLE_CONFIGS,
@@ -412,8 +413,7 @@ async function readParts(
   return parts
 }
 const belongs = (row: Record<string, any>, table: string) => {
-  if (table === "analog_switch")
-    return typeof row.num_channels === "number" && row.num_channels <= 2
+  if (table === "analog_switch") return isAnalogSwitch(row)
   if (table === "boost_converter") return /^boost$/i.test(String(row.topology))
   if (table === "buck_boost_converter")
     return /^buck[ -]boost$/i.test(String(row.topology))
