@@ -6,7 +6,7 @@ import {
 } from "cloudflare:test"
 import { afterEach, expect, it, vi } from "vitest"
 import worker from "../src/index"
-import { matchesFilters } from "../src/jlc/catalog"
+import { matchesFilters, supportsTiCategoryRoute } from "../src/jlc/catalog"
 import { TABLE_CONFIGS } from "../src/jlc/contracts"
 import { compatibilityFields } from "../src/jlc/ti-fields"
 import { normalizeProduct } from "../src/normalize"
@@ -42,20 +42,26 @@ afterEach(async () => {
   vi.unstubAllGlobals()
 })
 
-it("pins the reference route/filter contracts and all 59 homepage tiles in order", async () => {
+it("preserves reference contracts and shows only TI-supported homepage tiles in order", async () => {
   expect(TABLE_CONFIGS).toEqual(reference.configs)
   const home = await (await get("/")).text()
   const tiles = [
     ...home.matchAll(/<a href="(\/[^"?]+\/list)">([^<]+)<\/a>/g),
   ].map((m) => [m[1], m[2]])
   expect(tiles).toEqual(
-    Object.entries(reference.routes).map(([path, route]) => [
-      path,
-      route.label.replaceAll("&", "&amp;"),
-    ]),
+    Object.entries(reference.routes)
+      .filter(
+        ([path]) =>
+          ["/categories/list", "/footprint_index/list"].includes(path) ||
+          supportsTiCategoryRoute(path),
+      )
+      .map(([path, route]) => [path, route.label.replaceAll("&", "&amp;")]),
   )
   expect(home).not.toContain("fuel_gauges/list")
   expect(home).not.toContain("posthog")
+  expect(home).not.toContain('href="/barrel_jacks/list"')
+  expect(home).not.toContain('href="/switches/list"')
+  expect(home).toContain('href="/analog_switches/list"')
 })
 
 it("serves every reference page, exact response key, and form parameter without upstream access", async () => {

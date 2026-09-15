@@ -268,7 +268,9 @@ export const renderSimpleTablePage = (
   rows: Array<Record<string, unknown>>,
   requestUrl: string,
 ): string => {
-  const columns = Object.keys(rows[0] ?? {})
+  const columns = Object.keys(rows[0] ?? {}).filter(
+    (column) => column !== "lcsc",
+  )
   const table =
     rows.length === 0
       ? "<p>No parts have been indexed yet. The catalog is populated by scheduled imports.</p>"

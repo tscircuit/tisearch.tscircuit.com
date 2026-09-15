@@ -1,3 +1,4 @@
+import { supportsTiCategoryRoute } from "./catalog"
 // Adapted from tscircuit/jlcsearch ba23a0a; see THIRD_PARTY_NOTICES.md.
 import {
   normalizeTableQueryParams,
@@ -445,7 +446,7 @@ export const renderTable = (
 ): string => {
   if (rows.length === 0) return ""
   const firstRow = rows[0] as Record<string, unknown>
-  const columns = Object.keys(firstRow)
+  const columns = Object.keys(firstRow).filter((column) => column !== "lcsc")
   const headerHtml = columns
     .map(
       (column) =>
@@ -824,6 +825,11 @@ button {
 
 export const renderHomePage = (): string => {
   const links = Object.entries(routeLabels)
+    .filter(
+      ([path]) =>
+        ["/categories/list", "/footprint_index/list"].includes(path) ||
+        supportsTiCategoryRoute(path),
+    )
     .map(
       ([href, label]) =>
         `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`,

@@ -28,7 +28,8 @@ voltage, memory, and the route-specific parameters listed in the API contract.
 Unknown specifications do not satisfy a filter. TI-specific routes also expose
 raw TI parametric filters. Converter routes filter by topology.
 
-The homepage uses the shared category directory, order, labels, and compact
+The homepage and HTML category directory show only categories mapped to TI product
+families, retaining the shared order, labels, and compact
 table/forms interface. The full route and parameter contract is documented in
 [API compatibility](docs/api-compatibility.md). Existing TI-specific category
 URLs remain available as additional routes.
