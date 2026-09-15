@@ -324,6 +324,7 @@ async function readParts(
   if (scan) scan.done = true
   if (selectedFamilies?.length === 0) return []
   const conditions = ["json_extract(raw_json,'$.currency')=?"]
+  if (scan) conditions.push("stock > 0")
   const binds: unknown[] = [env.TI_CURRENCY ?? "USD"]
   if (selectedFamilies) {
     conditions.push(

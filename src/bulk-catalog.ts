@@ -20,6 +20,7 @@ interface BulkState {
   rejected: number
   completedAt?: number
   lastError?: string
+  rejectedSamples?: Array<{ partNumber: string; reason: string }>
 }
 const initial = (): BulkState => ({
   status: "idle",
@@ -39,14 +40,21 @@ export async function importCatalogChunk(
   fetchedAt: number,
 ) {
   let rejected = 0
+  const rejectedSamples: Array<{ partNumber: string; reason: string }> = []
   for (let i = 0; i < records.length; i += 50) {
     const readAt = Date.now()
     const fresh: NormalizedPart[] = []
     for (const store of records.slice(i, i + 50)) {
       try {
         fresh.push(normalizeProduct({ store }, env.TI_CURRENCY ?? "USD"))
-      } catch {
+      } catch (error) {
         rejected++
+        if (rejectedSamples.length < 20)
+          rejectedSamples.push({
+            partNumber: String(store.tiPartNumber ?? "").slice(0, 100),
+            reason:
+              error instanceof Error ? error.message : "Invalid catalog record",
+          })
       }
     }
     if (!fresh.length) continue
@@ -104,7 +112,7 @@ export async function importCatalogChunk(
     }
     await saveParts(env, parts, fetchedAt, [], readAt)
   }
-  return { rejected }
+  return { rejected, rejectedSamples }
 }
 
 export class BulkCatalogImporter extends DurableObject<Env> {
@@ -138,6 +146,10 @@ export class BulkCatalogImporter extends DurableObject<Env> {
         )
         job.processed += records.length
         job.rejected += result.rejected
+        job.rejectedSamples = [
+          ...(job.rejectedSamples ?? []),
+          ...result.rejectedSamples,
+        ].slice(0, 20)
         job.nextChunk++
         delete job.lastError
         if (job.nextChunk === job.chunks) {

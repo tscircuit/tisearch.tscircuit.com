@@ -295,7 +295,9 @@ const handleFetch = async (
     const status = await env.BULK_IMPORT.get(
       env.BULK_IMPORT.idFromName("ti-catalog"),
     ).fetch("https://bulk/status")
-    return jsonResponse(await status.json(), origin)
+    const response = jsonResponse(await status.json(), origin)
+    response.headers.set("cache-control", "no-store")
+    return response
   }
   if (pathname === "/health") {
     return jsonResponse({ ok: true }, origin)
