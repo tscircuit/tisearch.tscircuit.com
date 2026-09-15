@@ -445,7 +445,7 @@ export const renderTable = (
 ): string => {
   if (rows.length === 0) return ""
   const firstRow = rows[0] as Record<string, unknown>
-  const columns = Object.keys(firstRow)
+  const columns = Object.keys(firstRow).filter((column) => column !== "lcsc")
   const headerHtml = columns
     .map(
       (column) =>
