@@ -21,7 +21,7 @@ database_id = "555e3eac-a06e-4057-9110-93cabcbbaac7"
 migrations_dir = "migrations"
 
 [triggers]
-crons = ["17 */6 * * *", "*/15 * * * *"]
+crons = ["17 */6 * * *", "*/15 * * * *", "2-57/5 * * * *"]
 
 [[durable_objects.bindings]]
 name = "TI_GATEWAY"
@@ -30,3 +30,15 @@ class_name = "TiGateway"
 [[migrations]]
 tag = "v1-ti-gateway"
 new_sqlite_classes = ["TiGateway"]
+
+[[r2_buckets]]
+binding = "TI_CATALOG"
+bucket_name = "tisearch-catalog"
+
+[[durable_objects.bindings]]
+name = "BULK_IMPORT"
+class_name = "BulkCatalogImporter"
+
+[[migrations]]
+tag = "v2-bulk-catalog"
+new_sqlite_classes = ["BulkCatalogImporter"]

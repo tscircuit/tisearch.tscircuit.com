@@ -16,6 +16,7 @@ import { SearchInputError } from "./search-request"
 import { renderErrorPage, renderSearchPage } from "./render"
 import type { Env, SearchPayload } from "./types"
 
+export { BulkCatalogImporter } from "./bulk-catalog"
 export { TiGateway } from "./ti-gateway"
 
 const addCorsHeaders = (headers: Headers, origin: string | null): void => {
@@ -293,6 +294,12 @@ const handleFetch = async (
       { status: valid ? 404 : 400 },
     )
   }
+  if (pathname === "/api/catalog/status") {
+    const status = await env.BULK_IMPORT.get(
+      env.BULK_IMPORT.idFromName("ti-catalog"),
+    ).fetch("https://bulk/status")
+    return jsonResponse(await status.json(), origin)
+  }
   if (pathname === "/health") {
     return jsonResponse({ ok: true }, origin)
   }
@@ -402,6 +409,13 @@ export default {
     env: Env,
     ctx: ExecutionContext,
   ): Promise<void> {
+    ctx.waitUntil(
+      env.BULK_IMPORT.get(env.BULK_IMPORT.idFromName("ti-catalog")).fetch(
+        "https://bulk/tick",
+        { method: "POST" },
+      ),
+    )
+    if (controller.cron === "2-57/5 * * * *") return
     ctx.waitUntil(
       controller.cron === "17 */6 * * *"
         ? syncMetadata(env)

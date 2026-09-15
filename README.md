@@ -75,6 +75,23 @@ Other endpoints include `/categories/list`, `/package_index/list`, and `/health`
 
 ## Storage and background synchronization
 
+- **Bulk catalog import** downloads the TI Store catalog once daily using
+  `/v2/store/products/catalog?currency=USD&exclude-evms=true`. The shared gateway
+  reserves a separate four-hour-plus-one-minute interval before sending a request,
+  including failed attempts, across currencies and restarts. It streams the response
+  into private R2 chunks; no full-catalog JSON is buffered in Worker memory or the
+  gateway cache. Only a fully downloaded, validated snapshot is imported.
+- **Resumable D1 import** processes 500 saved records per Durable Object alarm,
+  using batches of 50 writes. Retrying a chunk is safe. Existing metadata and newer
+  inventory are preserved, and known categories can be reused for variants of the
+  same base product. Missing categories/specifications remain unknown until enriched.
+  Invalid records are counted as rejected. The previous snapshot is removed when
+  starting the next download; existing parts absent from a snapshot are retained.
+- **Bulk progress** is available at `/api/catalog/status`. `downloaded` and
+  `processed` count snapshot records, not unique D1 rows. The five-minute cron
+  wakes the importer; durable alarms handle progress and daily refreshes. The
+  status endpoint is read-only and cannot initiate TI requests.
+
 - **D1** stores normalized parts, specifications, prices, and inventory. FTS5
   indexes keyword searches; category, orderable/base part, and freshness indexes
   support catalog reads and refresh selection. Existing stored parts are retained
@@ -95,7 +112,7 @@ Other endpoints include `/categories/list`, `/package_index/list`, and `/health`
   Information metadata is cached for 30 days and Store inventory for 24 hours.
   Tokens are kept only in memory.
 
-Only these scheduled jobs contact TI. Public searches cannot exhaust TI quota.
+Only scheduled jobs and the bulk importer contact TI. Public searches cannot exhaust TI quota.
 TI's [published limits](https://www.ti.com/developer-api/store-api/reference/response-codes-rate-limits.html)
 include 2,000 Product Information requests per month, so discovery is deliberately
 bounded. Quota exhaustion can delay new imports, but existing pages remain
