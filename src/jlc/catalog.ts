@@ -23,7 +23,19 @@ import {
   TFT_DISPLAY_DRIVER_FAMILIES,
 } from "./tft-display-drivers"
 import taxonomy from "./taxonomy.json"
-import subcategoryTables from "./subcategory-tables.json"
+import subcategoryTableData from "./subcategory-tables.json"
+import tiSubcategoryFamilies from "./ti-subcategory-families.json"
+
+// These are existing JLC taxonomy labels, served by the existing general list.
+const subcategoryTables: Record<string, string> = {
+  ...subcategoryTableData,
+  ...Object.fromEntries(
+    Object.keys(tiSubcategoryFamilies).map((name) => [
+      name,
+      `ti-taxonomy:${name}`,
+    ]),
+  ),
+}
 
 const SPECIAL_TABLES: Record<string, string> = {
   "/analog_switches/list": "analog_switch",
@@ -48,6 +60,12 @@ const mcuFamilies = family(
 )
 // An absent mapping is an empty category, never an unfiltered catalog query.
 export const TI_ROUTE_FAMILIES: Record<string, string[]> = {
+  ...Object.fromEntries(
+    Object.entries(tiSubcategoryFamilies).map(([name, families]) => [
+      `ti-taxonomy:${name}`,
+      families,
+    ]),
+  ),
   ...Object.fromEntries(
     CATEGORY_DEFINITIONS.map((category) => [
       category.responseKey,
@@ -642,5 +660,15 @@ export function categoryRoutesForPart(part: NormalizedPart): string[] {
       )
     )
       routes.push(category.path)
+  for (const [subcategory, table] of Object.entries(subcategoryTables))
+    if (
+      TI_ROUTE_FAMILIES[table]?.some((family) =>
+        part.category.toLowerCase().startsWith(family.toLowerCase()),
+      ) &&
+      belongs(row, table)
+    )
+      routes.push(
+        `/components/list?${new URLSearchParams({ subcategory_name: subcategory })}`,
+      )
   return [...new Set(routes)].sort()
 }

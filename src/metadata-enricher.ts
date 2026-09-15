@@ -7,10 +7,11 @@ const DAY = 86400_000
 // Reserve room for stock/specification maintenance and other account clients.
 const DAILY_REQUESTS = 1500
 interface Job {
-  phase: "catalog" | "missing" | "specifications" | "complete"
+  phase: "catalog" | "mapping" | "missing" | "specifications" | "complete"
   page: number
   total?: number
   pagesApplied: number
+  mappingAfter?: string
   targeted: number
   specsChecked: number
   requestsToday: number
@@ -110,8 +111,23 @@ export class MetadataEnricher extends DurableObject<Env> {
         )
         job.total = page.total
         job.pagesApplied++
-        if (page.nextOffset === null) job.phase = "missing"
+        if (page.nextOffset === null) job.phase = "mapping"
         else job.page = page.nextOffset / 100
+      } else if (job.phase === "mapping") {
+        // Re-evaluate saved metadata against the complete current mappings.
+        // This pass uses no TI calls and also covers pre-existing enriched rows.
+        const rows = await this.env.DB.prepare(
+          "SELECT ti_product_number FROM parts WHERE ti_product_number>? ORDER BY ti_product_number LIMIT 100",
+        )
+          .bind(job.mappingAfter ?? "")
+          .all<{ ti_product_number: string }>()
+        await updateMetadata(
+          this.env,
+          rows.results.map((row) => ({ pn: row.ti_product_number })),
+        )
+        if (rows.results.length)
+          job.mappingAfter = rows.results.at(-1)!.ti_product_number
+        else job.phase = "missing"
       } else {
         const information = job.phase === "missing"
         const row = await this.env.DB.prepare(

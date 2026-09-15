@@ -10,7 +10,10 @@ import { enrichPart, updateMetadata } from "../src/metadata-store"
 import { normalizeProduct } from "../src/normalize"
 import { saveParts } from "../src/parts-store"
 import { refreshInventory } from "../src/catalog-sync"
-import { queryCompatibleCategory } from "../src/jlc/catalog"
+import {
+  queryCompatibleCategory,
+  queryCompatibleSearch,
+} from "../src/jlc/catalog"
 import worker from "../src/index"
 import catalog from "./fixtures/catalog.json"
 import parametrics from "./fixtures/parametrics.json"
@@ -153,7 +156,7 @@ it("resumes a saved information page with zero TI requests and advances only aft
   await runInDurableObject(stub, async (instance: MetadataEnricher, state) => {
     await instance.alarm()
     expect(await state.storage.get("job")).toMatchObject({
-      phase: "missing",
+      phase: "mapping",
       pagesApplied: 1,
       requestsToday: 0,
     })
@@ -311,4 +314,27 @@ it("does not report an empty TI spec response as available or discard saved rati
   ).first<any>()
   expect(row.specification_status).toBe("unavailable")
   expect(JSON.parse(row.raw_json).parametrics).toEqual(parametrics)
+})
+
+it("maps TI-only family names into existing general-list categories", async () => {
+  await seed()
+  await updateMetadata(env, [
+    {
+      pn: info.Identifier,
+      information: { ...info, ProductFamilyDescription: "AC/DC controllers" },
+    },
+  ])
+  const row = await env.DB.prepare("SELECT raw_json FROM parts").first<any>()
+  expect(JSON.parse(row.raw_json).category_routes).toContain(
+    "/components/list?subcategory_name=AC-DC+Controllers+%26+Regulators",
+  )
+  const result = await queryCompatibleSearch(
+    env,
+    { subcategory_name: "AC-DC Controllers & Regulators" },
+    false,
+  )
+  expect(result.components).toHaveLength(1)
+  expect(result.components[0].subcategory).toBe(
+    "AC-DC Controllers & Regulators",
+  )
 })

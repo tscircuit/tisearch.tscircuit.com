@@ -108,9 +108,10 @@ The one-time metadata enrichment job is enabled with
 
 1. Scan TI Product Information (`/v1/products?Page=…&Size=100`), saving pages in
    private R2 storage. Match orderable part numbers and update existing D1 rows only.
-2. Look up remaining unmatched orderable parts individually. A TI 404 is recorded
+2. Re-evaluate saved metadata against the existing taxonomy, without TI requests.
+3. Look up remaining unmatched orderable parts individually. A TI 404 is recorded
    as unavailable and does not remove the stored part.
-3. Fetch missing electrical parametrics per orderable part. Reuse specifications
+4. Fetch missing electrical parametrics per orderable part. Reuse specifications
    already stored; do not assume different package variants have identical ratings.
 
 `ti_information` preserves TI's original product details and `ti_family` preserves
