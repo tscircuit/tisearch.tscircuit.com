@@ -208,3 +208,37 @@ it("enriches stored specs without advancing inventory freshness", async () => {
   await refreshSpecifications(target)
   expect(fetcher).toHaveBeenCalledTimes(calls)
 })
+
+it("freezes discovery and unknown pending parts while refreshing existing inventory", async () => {
+  const target = { ...runtime(), TI_CATALOG_POPULATION_ENABLED: "false" }
+  await saveParts(
+    target,
+    [normalizeProduct({ store: catalog.catalog[0] })],
+    Date.now() - 2 * 86400_000,
+  )
+  await env.DB.prepare(
+    "INSERT INTO catalog_pending(ti_product_number,information_json,created_at) VALUES ('NEWPART','{}',0)",
+  ).run()
+  const fetcher = vi
+    .fn()
+    .mockImplementation(async (input: string | URL) =>
+      String(input).includes("oauth")
+        ? respond(new URL(String(input)))
+        : Response.json({ ...catalog.catalog[0], quantity: 777 }),
+    )
+  vi.stubGlobal("fetch", fetcher)
+  await discoverCatalog(target)
+  expect(fetcher).not.toHaveBeenCalled()
+  await refreshInventory(target)
+  expect(
+    fetcher.mock.calls.some(([url]) => String(url).includes("NEWPART")),
+  ).toBe(false)
+  expect(
+    await env.DB.prepare(
+      "SELECT count(*) AS n, max(stock) AS stock FROM parts",
+    ).first(),
+  ).toEqual({ n: 1, stock: 777 })
+  expect(
+    await env.DB.prepare("SELECT count(*) AS n FROM catalog_pending").first(),
+  ).toEqual({ n: 1 })
+})

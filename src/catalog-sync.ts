@@ -19,6 +19,7 @@ const getClient = (env: Env) =>
 
 // Public requests never call these jobs. D1 preserves cursors and import queues.
 export const discoverCatalog = async (env: Env) => {
+  if (env.TI_CATALOG_POPULATION_ENABLED !== "true") return
   const now = Date.now()
   const families = [
     ...new Set([
@@ -83,12 +84,14 @@ export const discoverCatalog = async (env: Env) => {
 export const refreshInventory = async (env: Env) => {
   const client = getClient(env)
   const pending = await env.DB.prepare(
-    "SELECT catalog_pending.ti_product_number,information_json,parts.raw_json FROM catalog_pending LEFT JOIN parts USING(ti_product_number) ORDER BY created_at,catalog_pending.ti_product_number LIMIT 20",
-  ).all<{
-    ti_product_number: string
-    information_json: string
-    raw_json: string | null
-  }>()
+    "SELECT catalog_pending.ti_product_number,information_json,parts.raw_json FROM catalog_pending LEFT JOIN parts USING(ti_product_number) WHERE ? = 1 OR parts.ti_product_number IS NOT NULL ORDER BY created_at,catalog_pending.ti_product_number LIMIT 20",
+  )
+    .bind(env.TI_CATALOG_POPULATION_ENABLED === "true" ? 1 : 0)
+    .all<{
+      ti_product_number: string
+      information_json: string
+      raw_json: string | null
+    }>()
   for (const row of pending.results) {
     try {
       const inventory = await client.inventory(row.ti_product_number)

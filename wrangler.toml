@@ -9,6 +9,7 @@ routes = [
 ]
 
 [vars]
+TI_CATALOG_POPULATION_ENABLED = "false"
 TI_CURRENCY = "USD"
 TI_CACHE_TTL_SECONDS = "86400"
 TI_STALE_TTL_SECONDS = "604800"
@@ -30,3 +31,15 @@ class_name = "TiGateway"
 [[migrations]]
 tag = "v1-ti-gateway"
 new_sqlite_classes = ["TiGateway"]
+
+[[r2_buckets]]
+binding = "TI_CATALOG"
+bucket_name = "tisearch-catalog"
+
+[[durable_objects.bindings]]
+name = "BULK_IMPORT"
+class_name = "BulkCatalogImporter"
+
+[[migrations]]
+tag = "v2-bulk-catalog"
+new_sqlite_classes = ["BulkCatalogImporter"]

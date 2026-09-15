@@ -1,9 +1,6 @@
+import { searchResponseBody } from "./jlc/search-stream"
 import taxonomy from "./jlc/taxonomy.json"
-import {
-  COMPATIBLE_ROUTES,
-  queryCompatibleCategory,
-  queryCompatibleSearch,
-} from "./jlc/catalog"
+import { COMPATIBLE_ROUTES, queryCompatibleCategory } from "./jlc/catalog"
 import {
   renderD1TablePage,
   renderHomePage as renderReferenceHomePage,
@@ -16,6 +13,7 @@ import { SearchInputError } from "./search-request"
 import { renderErrorPage, renderSearchPage } from "./render"
 import type { Env, SearchPayload } from "./types"
 
+export { BulkCatalogImporter } from "./bulk-catalog"
 export { TiGateway } from "./ti-gateway"
 
 const addCorsHeaders = (headers: Headers, origin: string | null): void => {
@@ -293,28 +291,39 @@ const handleFetch = async (
       { status: valid ? 404 : 400 },
     )
   }
+  if (pathname === "/api/catalog/status") {
+    const status = await env.BULK_IMPORT.get(
+      env.BULK_IMPORT.idFromName("ti-catalog"),
+    ).fetch("https://bulk/status")
+    const response = jsonResponse(await status.json(), origin)
+    response.headers.set("cache-control", "no-store")
+    return response
+  }
   if (pathname === "/health") {
     return jsonResponse({ ok: true }, origin)
   }
   if (pathname === "/") {
     return htmlResponse(renderReferenceHomePage(), origin)
   }
-  if (
-    COMPATIBLE_ROUTES.includes(pathname) ||
-    pathname === "/components/list" ||
-    pathname === "/api/search"
-  ) {
+  if (pathname === "/components/list" || pathname === "/api/search") {
+    const json = isJsonRequest(request, url)
+    const body = await searchResponseBody(
+      env,
+      pathname,
+      Object.fromEntries(url.searchParams),
+      json,
+      url.pathname + url.search,
+    )
+    const template = json
+      ? jsonResponse({}, origin, { cacheStatus: "INDEX" })
+      : htmlResponse("", origin, { cacheStatus: "INDEX" })
+    const response = new Response(body, { headers: template.headers })
+    response.headers.set("x-catalog-complete", "false")
+    return response
+  }
+  if (COMPATIBLE_ROUTES.includes(pathname)) {
     const params = Object.fromEntries(url.searchParams)
-    const result = COMPATIBLE_ROUTES.includes(pathname)
-      ? await queryCompatibleCategory(env, pathname, params)
-      : {
-          data: await queryCompatibleSearch(
-            env,
-            params,
-            pathname === "/api/search",
-          ),
-          filterOptions: {},
-        }
+    const result = await queryCompatibleCategory(env, pathname, params)
     const response = isJsonRequest(request, url)
       ? jsonResponse(result.data, origin, { cacheStatus: "INDEX" })
       : htmlResponse(
@@ -402,6 +411,13 @@ export default {
     env: Env,
     ctx: ExecutionContext,
   ): Promise<void> {
+    ctx.waitUntil(
+      env.BULK_IMPORT.get(env.BULK_IMPORT.idFromName("ti-catalog")).fetch(
+        "https://bulk/tick",
+        { method: "POST" },
+      ),
+    )
+    if (controller.cron === "2-57/5 * * * *") return
     ctx.waitUntil(
       controller.cron === "17 */6 * * *"
         ? syncMetadata(env)

@@ -439,7 +439,7 @@ const renderCell = (
   return escapeHtml(value)
 }
 
-const renderTable = (
+export const renderTable = (
   rows: unknown[],
   productUrls: Record<string, string>,
 ): string => {

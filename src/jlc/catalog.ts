@@ -311,13 +311,20 @@ export function matchesFilters(
 }
 
 const escapeLike = (value: string) => value.replace(/[\\%_]/g, "\\$&")
+export interface SearchScan {
+  after?: { stock: number; mfr: string }
+  done: boolean
+}
 async function readParts(
   env: Env,
   selectedFamilies?: string[],
   params: Record<string, string> = {},
+  scan?: SearchScan,
 ): Promise<NormalizedPart[]> {
+  if (scan) scan.done = true
   if (selectedFamilies?.length === 0) return []
   const conditions = ["json_extract(raw_json,'$.currency')=?"]
+  if (scan) conditions.push("stock > 0")
   const binds: unknown[] = [env.TI_CURRENCY ?? "USD"]
   if (selectedFamilies) {
     conditions.push(
@@ -364,15 +371,27 @@ async function readParts(
       binds.push(...groups.flat().map((token) => `%${token}%`))
     } else return []
   }
+  if (scan?.after) {
+    conditions.push(
+      "(stock < ? OR (stock = ? AND manufacturer_part_number > ?))",
+    )
+    binds.push(scan.after.stock, scan.after.stock, scan.after.mfr)
+  }
   const rows = await env.DB.prepare(
-    `SELECT raw_json,updated_at FROM parts WHERE ${conditions.join(" AND ")} ORDER BY stock DESC,manufacturer_part_number`,
+    `SELECT raw_json,updated_at FROM parts WHERE ${conditions.join(" AND ")} ORDER BY stock DESC,manufacturer_part_number${scan ? " LIMIT 500" : ""}`,
   )
     .bind(...binds)
     .all<{ raw_json: string; updated_at: number }>()
-  return rows.results.map((row) => ({
+  const parts = rows.results.map((row) => ({
     ...hydratePart(row.raw_json),
     inventory_updated_at: new Date(row.updated_at).toISOString(),
   }))
+  if (scan) {
+    scan.done = parts.length < 500
+    const last = parts.at(-1)
+    if (last) scan.after = { stock: last.stock, mfr: last.mfr }
+  }
+  return parts
 }
 const belongs = (row: Record<string, any>, table: string) => {
   if (table === "analog_switch")
@@ -503,6 +522,7 @@ export async function queryCompatibleSearch(
   env: Env,
   params: Record<string, string>,
   api = false,
+  scan?: SearchScan,
 ) {
   for (const name of ["num_pins", ...NUMERIC_SPEC_FILTERS]) {
     if (
@@ -529,6 +549,7 @@ export async function queryCompatibleSearch(
       ? (TI_ROUTE_FAMILIES[subcategoryTable] ?? [])
       : undefined,
     searchParams,
+    scan,
   )
   if (isReferenceSubcategory && subcategoryTable)
     parts = parts.filter((part) =>

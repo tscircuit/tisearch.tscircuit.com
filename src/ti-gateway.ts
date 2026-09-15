@@ -32,9 +32,11 @@ export class TiGateway extends DurableObject<Env> {
   private async forward(request: Request, oauth: boolean): Promise<Response> {
     const scope = oauth
       ? "oauth"
-      : new URL(request.url).pathname.startsWith("/v2/")
-        ? "store"
-        : "information"
+      : new URL(request.url).pathname === "/v2/store/products/catalog"
+        ? "catalog"
+        : new URL(request.url).pathname.startsWith("/v2/")
+          ? "store"
+          : "information"
     const requestBody = oauth ? await request.clone().text() : ""
     if (
       oauth &&
@@ -76,6 +78,11 @@ export class TiGateway extends DurableObject<Env> {
       (await this.ctx.storage.get<number>("cooldown")) ?? 0,
     )
     if (cooldown > now) return this.throttled(cooldown, scope)
+    if (scope === "catalog") {
+      const nextCatalog =
+        (await this.ctx.storage.get<number>("next-catalog-request")) ?? 0
+      if (nextCatalog > now) return this.throttled(nextCatalog, scope)
+    }
     // Production callers send no token: authentication happens only on a cache miss.
     if (!oauth && !request.headers.has("authorization")) {
       if (!this.env.TI_CLIENT_ID || !this.env.TI_CLIENT_SECRET)
@@ -117,9 +124,16 @@ export class TiGateway extends DurableObject<Env> {
       )
     // Two calls per second, including OAuth, below TI's five/second ceiling.
     await this.ctx.storage.put("next-request", Date.now() + 500)
+    // Reserve before sending: failed/interrupted downloads still consume the
+    // catalog allowance. This applies across currencies and object restarts.
+    if (scope === "catalog")
+      await this.ctx.storage.put(
+        "next-catalog-request",
+        Date.now() + 4 * 3600_000 + 60_000,
+      )
     const response = await fetch(request, {
       redirect: "manual",
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(scope === "catalog" ? 5 * 60_000 : 30_000),
     })
     if (response.status === 429) {
       const raw = response.headers.get("retry-after")
@@ -151,6 +165,9 @@ export class TiGateway extends DurableObject<Env> {
       await response.body?.cancel()
       return this.throttled(until, scope)
     }
+    // Stream the bulk body into the private snapshot importer. Never buffer or
+    // place this large response in a Durable Object key/value cache entry.
+    if (scope === "catalog") return response
     if (oauth && response.ok) {
       const body = await response.text()
       try {

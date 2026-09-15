@@ -1,9 +1,13 @@
+import type { BulkCatalogImporter } from "./bulk-catalog"
 import type { TiGateway } from "./ti-gateway"
 export interface Env {
+  TI_CATALOG: R2Bucket
+  BULK_IMPORT: DurableObjectNamespace<BulkCatalogImporter>
   DB: D1Database
   TI_GATEWAY?: DurableObjectNamespace<TiGateway>
   TI_CLIENT_ID: string
   TI_CLIENT_SECRET: string
+  TI_CATALOG_POPULATION_ENABLED?: string
   TI_CURRENCY?: string
   TI_CACHE_TTL_SECONDS?: string
   TI_STALE_TTL_SECONDS?: string

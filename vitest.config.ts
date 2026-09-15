@@ -11,6 +11,7 @@ export default defineWorkersConfig(async () => ({
         wrangler: { configPath: "./wrangler.toml" },
         miniflare: {
           bindings: {
+            TI_CATALOG_POPULATION_ENABLED: "true",
             TI_CLIENT_ID: "test-id",
             TI_CLIENT_SECRET: "test-secret",
             TEST_MIGRATIONS: await readD1Migrations("./migrations"),

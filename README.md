@@ -16,7 +16,9 @@ TI authentication failures and rate limits therefore cannot block browsing.
 
 All matching stored parts appear together on one page. There are no Next or
 Previous controls, and legacy listing `limit`/`offset` parameters do not truncate
-results. Electrical filters apply to the full stored category.
+results. Electrical filters apply to the full stored category. General search
+responses stream from D1 in batches, keeping server memory bounded while returning
+one complete HTML page or JSON array.
 
 Search by orderable part number, base part number, product family, or keywords.
 Shared category pages include stored stock snapshots; general search returns
@@ -75,18 +77,23 @@ Other endpoints include `/categories/list`, `/package_index/list`, and `/health`
 
 ## Storage and background synchronization
 
+Catalog population is disabled with `TI_CATALOG_POPULATION_ENABLED = "false"`.
+The existing 67,549 parts are retained. New-part discovery, pending imports for
+unknown parts, bulk downloads, and bulk import alarms are disabled. Existing R2
+snapshots and discovery queues are retained without importing additional parts.
+
+The bulk importer remains available in the code for an explicit future opt-in.
+`/api/catalog/status` exposes the last import's counts and `populationEnabled`;
+`nextDownloadAt` is null while disabled. The endpoint cannot start an import.
+
 - **D1** stores normalized parts, specifications, prices, and inventory. FTS5
   indexes keyword searches; category, orderable/base part, and freshness indexes
   support catalog reads and refresh selection. Existing stored parts are retained
   when applying migrations.
-- **Scheduled discovery**, every six hours, queues up to 100 family products
-  with one metadata request. A D1 cursor and lease preserve progress across runs. Successful runs
-  advance the cursor; throttled runs retain data and back off. A completed family
-  is revisited after 30 days.
-- **Scheduled inventory refresh**, every 15 minutes, updates up to 20 of the
-  pending imports or oldest listings whose inventory is at least 24 hours old. It uses the Store
-  API only and preserves indexed specifications. Failed refreshes retain the
-  last successful inventory timestamp.
+- **Scheduled inventory refresh**, every 15 minutes, updates up to 20 existing
+  listings. Queued metadata is applied only to parts already in D1; otherwise the
+  oldest listings whose inventory is at least 24 hours old are refreshed. Failed
+  refreshes retain the last successful inventory timestamp.
 - **Scheduled specification refresh**, every six hours, enriches up to five
   indexed parts whose specifications have not been checked in 30 days. Inventory
   timestamps are preserved.
@@ -95,10 +102,10 @@ Other endpoints include `/categories/list`, `/package_index/list`, and `/health`
   Information metadata is cached for 30 days and Store inventory for 24 hours.
   Tokens are kept only in memory.
 
-Only these scheduled jobs contact TI. Public searches cannot exhaust TI quota.
+Only background jobs contact TI. Public searches cannot exhaust TI quota.
 TI's [published limits](https://www.ti.com/developer-api/store-api/reference/response-codes-rate-limits.html)
-include 2,000 Product Information requests per month, so discovery is deliberately
-bounded. Quota exhaustion can delay new imports, but existing pages remain
+include 2,000 Product Information requests per month, so specification refreshes are deliberately
+bounded. Quota exhaustion can delay refreshes, but existing pages remain
 available from D1.
 
 ## Development and deployment

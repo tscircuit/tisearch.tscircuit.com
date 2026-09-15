@@ -6,6 +6,7 @@ export const saveParts = async (
   parts: NormalizedPart[],
   now = Date.now(),
   extraStatements: D1PreparedStatement[] = [],
+  metadataReadAt?: number,
 ) => {
   const statements: D1PreparedStatement[] = []
   for (const part of parts) {
@@ -37,7 +38,8 @@ export const saveParts = async (
           parameters_json = excluded.parameters_json,
           search_text = excluded.search_text,
           raw_json = excluded.raw_json,
-          updated_at = excluded.updated_at`,
+          updated_at = excluded.updated_at
+          ${metadataReadAt === undefined ? "" : "WHERE parts.updated_at <= excluded.updated_at AND parts.metadata_checked_at <= ?"}`,
       ).bind(
         part.ti_product_number,
         part.mfr,
@@ -60,6 +62,7 @@ export const saveParts = async (
         JSON.stringify(part),
         now,
         now,
+        ...(metadataReadAt === undefined ? [] : [metadataReadAt]),
       ),
     )
   }
