@@ -1,3 +1,4 @@
+import { tiCategoryDirectory } from "./jlc/catalog"
 import { searchResponseBody } from "./jlc/search-stream"
 import taxonomy from "./jlc/taxonomy.json"
 import { COMPATIBLE_ROUTES, queryCompatibleCategory } from "./jlc/catalog"
@@ -147,7 +148,7 @@ const handleCategories = async (
     : htmlResponse(
         renderD1TablePage(
           "/categories/list",
-          { categories },
+          { categories: tiCategoryDirectory(categoryName) },
           Object.fromEntries(url.searchParams),
           url.pathname + url.search,
         ),

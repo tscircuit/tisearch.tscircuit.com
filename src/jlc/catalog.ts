@@ -672,3 +672,18 @@ export function categoryRoutesForPart(part: NormalizedPart): string[] {
       )
   return [...new Set(routes)].sort()
 }
+
+export function supportsTiCategoryRoute(path: string): boolean {
+  const table = ROUTE_TO_TABLE[path] ?? SPECIAL_TABLES[path]
+  return Boolean(TI_ROUTE_FAMILIES[table]?.length || CATEGORY_BY_PATH.has(path))
+}
+
+export function tiCategoryDirectory(categoryName?: string | null) {
+  const supported = taxonomy.subcategories.filter(
+    (row) => TI_ROUTE_FAMILIES[subcategoryTables[row.subcategory]]?.length,
+  )
+  if (categoryName)
+    return supported.filter((row) => row.category === categoryName)
+  const names = new Set(supported.map((row) => row.category))
+  return taxonomy.categories.filter((row) => names.has(row.category))
+}

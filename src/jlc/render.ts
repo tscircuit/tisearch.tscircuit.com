@@ -1,3 +1,4 @@
+import { supportsTiCategoryRoute } from "./catalog"
 // Adapted from tscircuit/jlcsearch ba23a0a; see THIRD_PARTY_NOTICES.md.
 import {
   normalizeTableQueryParams,
@@ -824,6 +825,11 @@ button {
 
 export const renderHomePage = (): string => {
   const links = Object.entries(routeLabels)
+    .filter(
+      ([path]) =>
+        ["/categories/list", "/footprint_index/list"].includes(path) ||
+        supportsTiCategoryRoute(path),
+    )
     .map(
       ([href, label]) =>
         `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`,
