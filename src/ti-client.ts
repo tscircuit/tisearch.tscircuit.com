@@ -129,9 +129,9 @@ export class TiClient {
     }
   }
 
-  async discover(family: string, offset: number) {
+  async discover(family: string | undefined, offset: number) {
     const url = new URL("https://transact.ti.com/v1/products")
-    url.searchParams.set("ProductFamilyDescription", family)
+    if (family) url.searchParams.set("ProductFamilyDescription", family)
     url.searchParams.set("Page", String(offset / 100))
     url.searchParams.set("Size", "100")
     const { data } = await this.getJson(url)
@@ -151,11 +151,27 @@ export class TiClient {
     for (const item of information) validatePartNumber(item?.Identifier)
     return {
       information,
+      total: body.TotalElements,
       nextOffset:
         information.length && offset + information.length < body.TotalElements
           ? offset + 100
           : null,
     }
+  }
+
+  async information(partNumber: string) {
+    const pn = validatePartNumber(partNumber)
+    const { data } = await this.getJson(
+      new URL(`https://transact.ti.com/v1/products/${encodeURIComponent(pn)}`),
+    )
+    const record = data as Record<string, unknown>
+    if (
+      !record ||
+      typeof record.Identifier !== "string" ||
+      record.Identifier.toUpperCase() !== pn.toUpperCase()
+    )
+      throw new TiApiError("TI returned a different product identifier", 502)
+    return record
   }
 
   async specifications(partNumber: string) {

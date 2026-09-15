@@ -5,7 +5,7 @@ import {
   matchesSpecFilter,
 } from "../jlc-compat"
 import { hydratePart } from "../catalog"
-import { CATEGORY_DEFINITIONS } from "../categories"
+import { CATEGORY_DEFINITIONS, CATEGORY_BY_PATH } from "../categories"
 import type { Env, NormalizedPart } from "../types"
 import { compatibilityFields } from "./ti-fields"
 import {
@@ -23,7 +23,19 @@ import {
   TFT_DISPLAY_DRIVER_FAMILIES,
 } from "./tft-display-drivers"
 import taxonomy from "./taxonomy.json"
-import subcategoryTables from "./subcategory-tables.json"
+import subcategoryTableData from "./subcategory-tables.json"
+import tiSubcategoryFamilies from "./ti-subcategory-families.json"
+
+// These are existing JLC taxonomy labels, served by the existing general list.
+const subcategoryTables: Record<string, string> = {
+  ...subcategoryTableData,
+  ...Object.fromEntries(
+    Object.keys(tiSubcategoryFamilies).map((name) => [
+      name,
+      `ti-taxonomy:${name}`,
+    ]),
+  ),
+}
 
 const SPECIAL_TABLES: Record<string, string> = {
   "/analog_switches/list": "analog_switch",
@@ -48,6 +60,12 @@ const mcuFamilies = family(
 )
 // An absent mapping is an empty category, never an unfiltered catalog query.
 export const TI_ROUTE_FAMILIES: Record<string, string[]> = {
+  ...Object.fromEntries(
+    Object.entries(tiSubcategoryFamilies).map(([name, families]) => [
+      `ti-taxonomy:${name}`,
+      families,
+    ]),
+  ),
   ...Object.fromEntries(
     CATEGORY_DEFINITIONS.map((category) => [
       category.responseKey,
@@ -621,4 +639,36 @@ function taxonomyForPart(part: NormalizedPart, selected?: string) {
     category: entry?.category ?? part.category,
     subcategory: entry?.subcategory ?? part.subcategory,
   }
+}
+
+// Reuse the same family and specification rules as the existing category pages.
+export function categoryRoutesForPart(part: NormalizedPart): string[] {
+  const row = compatibilityFields(part)
+  const routes = COMPATIBLE_ROUTES.filter((path) => {
+    const table = ROUTE_TO_TABLE[path] ?? SPECIAL_TABLES[path]
+    return (
+      TI_ROUTE_FAMILIES[table]?.some((family) =>
+        part.category.toLowerCase().startsWith(family.toLowerCase()),
+      ) && belongs(row, table)
+    )
+  })
+  for (const category of CATEGORY_BY_PATH.values())
+    if (
+      part.category.toLowerCase().startsWith(category.query.toLowerCase()) &&
+      Object.entries(category.defaultFilters ?? {}).every(([name, value]) =>
+        matchesSpecFilter(part, name, value),
+      )
+    )
+      routes.push(category.path)
+  for (const [subcategory, table] of Object.entries(subcategoryTables))
+    if (
+      TI_ROUTE_FAMILIES[table]?.some((family) =>
+        part.category.toLowerCase().startsWith(family.toLowerCase()),
+      ) &&
+      belongs(row, table)
+    )
+      routes.push(
+        `/components/list?${new URLSearchParams({ subcategory_name: subcategory })}`,
+      )
+  return [...new Set(routes)].sort()
 }

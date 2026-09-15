@@ -9,6 +9,7 @@ routes = [
 ]
 
 [vars]
+TI_METADATA_ENRICHMENT_ENABLED = "true"
 TI_CATALOG_POPULATION_ENABLED = "false"
 TI_CURRENCY = "USD"
 TI_CACHE_TTL_SECONDS = "86400"
@@ -43,3 +44,11 @@ class_name = "BulkCatalogImporter"
 [[migrations]]
 tag = "v2-bulk-catalog"
 new_sqlite_classes = ["BulkCatalogImporter"]
+
+[[durable_objects.bindings]]
+name = "METADATA_ENRICHMENT"
+class_name = "MetadataEnricher"
+
+[[migrations]]
+tag = "v3-metadata-enrichment"
+new_sqlite_classes = ["MetadataEnricher"]

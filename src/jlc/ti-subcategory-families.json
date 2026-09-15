@@ -1,0 +1,58 @@
+{
+  "AC-DC Controllers And Regulators": ["AC/DC controllers"],
+  "AC-DC Controllers & Regulators": ["AC/DC controllers"],
+  "Digital Signal Processors (DSP/DSC)": ["Audio & radar DSP SoCs"],
+  "Digital Signal Processors / Controllers (DSPs/DSCs)": [
+    "Audio & radar DSP SoCs",
+    "Real-time digital power MCUs"
+  ],
+  "Buffers, Drivers, Receivers, Transceivers": [
+    "General-purpose transceivers",
+    "Noninverting buffers & drivers",
+    "Inverting buffers & drivers"
+  ],
+  "Buffer/Driver/Transceiver": [
+    "General-purpose transceivers",
+    "Noninverting buffers & drivers",
+    "Inverting buffers & drivers"
+  ],
+  "Logic-Buffers, Drivers, Receivers, Transceivers": [
+    "General-purpose transceivers",
+    "Noninverting buffers & drivers",
+    "Inverting buffers & drivers"
+  ],
+  "Latches": ["D-type latches"],
+  "Shift Registers": ["Shift registers"],
+  "Shifting Register": ["Shift registers"],
+  "Specialty Logic": ["Specialty logic ICs"],
+  "Special Logic ICs": ["Specialty logic ICs"],
+  "Signal Switches / Encoders & Decoders / Multiplexers": [
+    "Digital demultiplexers & decoders",
+    "Digital multiplexers & encoders"
+  ],
+  "Signal Switches, Multiplexers, Decoders": [
+    "Digital demultiplexers & decoders",
+    "Digital multiplexers & encoders"
+  ],
+  "Differential Amplifiers": [
+    "Fully differential amplifiers",
+    "RF fully differential amplifiers (FDAs)"
+  ],
+  "RF Amplifiers": ["RF fully differential amplifiers (FDAs)"],
+  "Interface - Specialized": ["Other interfaces", "LVDS, M-LVDS & PECL ICs"],
+  "Clock Generators / Frequency Synthesizers / PLL": [
+    "Clock generators",
+    "RF PLLs & synthesizers"
+  ],
+  "Clock Generators, PLLs, Frequency Synthesizers": [
+    "Clock generators",
+    "RF PLLs & synthesizers"
+  ],
+  "Clock Jitter Cleaners & Synchronizers": ["Clock jitter cleaners"],
+  "Timers / Counters": ["Counters", "Pulse & delay generators"],
+  "Counters, Dividers": ["Counters"],
+  "Counters / Dividers": ["Counters"],
+  "Diodes - ESD": ["ESD protection diodes"],
+  "ESD Protection Devices": ["ESD protection diodes"],
+  "Electrostatic And Surge Protection (TVS/ESD)": ["ESD protection diodes"]
+}

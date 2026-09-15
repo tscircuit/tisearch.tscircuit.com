@@ -13,6 +13,7 @@ import { SearchInputError } from "./search-request"
 import { renderErrorPage, renderSearchPage } from "./render"
 import type { Env, SearchPayload } from "./types"
 
+export { MetadataEnricher } from "./metadata-enricher"
 export { BulkCatalogImporter } from "./bulk-catalog"
 export { TiGateway } from "./ti-gateway"
 
@@ -291,6 +292,27 @@ const handleFetch = async (
       { status: valid ? 404 : 400 },
     )
   }
+  if (pathname === "/api/enrichment/status") {
+    const [job, coverage] = await Promise.all([
+      env.METADATA_ENRICHMENT.get(
+        env.METADATA_ENRICHMENT.idFromName("existing-parts-v1"),
+      )
+        .fetch("https://metadata/status")
+        .then((r) => r.json()),
+      env.DB.prepare(`SELECT count(*) AS total_parts,
+        sum(information_status='available') AS information_available,
+        sum(information_status='pending') AS information_pending,
+        sum(information_status='unavailable') AS information_unavailable,
+        sum(specification_status='available') AS specifications_available,
+        sum(specification_status='pending') AS specifications_pending,
+        sum(specification_status='unavailable') AS specifications_unavailable,
+        sum(COALESCE(json_array_length(raw_json,'$.category_routes'),0)>0) AS mapped_parts
+        FROM parts`).first(),
+    ])
+    const response = jsonResponse({ job, coverage }, origin)
+    response.headers.set("cache-control", "no-store")
+    return response
+  }
   if (pathname === "/api/catalog/status") {
     const status = await env.BULK_IMPORT.get(
       env.BULK_IMPORT.idFromName("ti-catalog"),
@@ -411,6 +433,11 @@ export default {
     env: Env,
     ctx: ExecutionContext,
   ): Promise<void> {
+    ctx.waitUntil(
+      env.METADATA_ENRICHMENT.get(
+        env.METADATA_ENRICHMENT.idFromName("existing-parts-v1"),
+      ).fetch("https://metadata/tick", { method: "POST" }),
+    )
     ctx.waitUntil(
       env.BULK_IMPORT.get(env.BULK_IMPORT.idFromName("ti-catalog")).fetch(
         "https://bulk/tick",
