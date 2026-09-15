@@ -19,13 +19,17 @@ Previous controls, and legacy listing `limit`/`offset` parameters do not truncat
 results. Electrical filters apply to the full stored category.
 
 Search by orderable part number, base part number, product family, or keywords.
-Listings include out-of-stock parts by default; select **In stock** to hide them.
+Shared category pages include stored stock snapshots; general search returns
+in-stock matches. Additional TI-specific listings include an **In stock** filter.
 Filters include package, pin count, lifecycle, resolution, channels, output
-voltage, memory, and all supplied TI parametric values. Unknown specifications
-do not satisfy a filter. Converter routes also filter by topology.
+voltage, memory, and the route-specific parameters listed in the API contract.
+Unknown specifications do not satisfy a filter. TI-specific routes also expose
+raw TI parametric filters. Converter routes filter by topology.
 
-The directory contains 66 category links in 14 groups. Some links share the
-same TI family. Definitions are in `src/category-data.json`.
+The homepage uses the shared category directory, order, labels, and compact
+table/forms interface. The full route and parameter contract is documented in
+[API compatibility](docs/api-compatibility.md). Existing TI-specific category
+URLs remain available as additional routes.
 
 ## API
 
@@ -46,17 +50,26 @@ curl 'https://tisearch.tscircuit.com/api/index/search?q=buck&limit=10'
 
 Listing endpoints support `.json`, `?json=true`, or `Accept: application/json`.
 Category JSON uses its category key; `/api/search` returns `components` directly.
-Metadata reports `source: "ti-d1-index"` and `filter_scope: "catalog"`.
-`total` is the number of matching stored parts, `next_offset` is null, and
-`upstream_total` is null because the local index does not establish TI's current
-total. `catalog_complete: false` means the index is still being populated; it
-must not be interpreted as TI's entire catalog.
+Shared category endpoints return their established response keys, including
+`multiplexers` for analog multiplexers and `switches` for analog switches.
+HTML, `.json`, `?json=true`, and `Accept: application/json` are supported.
+`cachebust=1` or `cachebust=true` bypasses response caching without contacting TI.
+The `x-data-source: d1` and `x-catalog-complete: false` headers identify stored,
+incomplete catalog data. TI-specific extension routes retain their richer
+metadata envelope.
+
+Categories for which no matching TI products have been imported return empty
+arrays with HTTP 200. TI does not provide LCSC identifiers or assembly-library
+Basic/Preferred classifications: these fields remain null, and filters requiring
+those classifications cannot match. LCSC-addressed CAD endpoints return the
+compatible invalid-ID or not-found response; this service does not fetch parts
+or CAD data from JLCSearch or EasyEDA.
 
 Parts retain TI identities, stock, currency, price breaks, raw `parametrics`,
 readable `parameters`, and product/datasheet links. `price1` is null unless TI
-quotes quantity one. `inventory_updated_at`, `last_updated_at`, and `stale`
-identify inventory freshness. Older inventory stays visible while background
-refreshes are delayed; it is never relabeled as live data.
+quotes quantity one. TI-specific extension endpoints expose inventory timestamps and freshness.
+All stock values are stored snapshots. Older inventory stays visible while
+background refreshes are delayed.
 
 Other endpoints include `/categories/list`, `/package_index/list`, and `/health`.
 

@@ -48,7 +48,7 @@ describe("reference page interface", () => {
   it("uses flat category tiles and no homepage data table", () => {
     const html = renderHomePage()
     expect(html).toContain("Categories</a>")
-    expect(html).toContain("Package Index</a>")
+    expect(html).toContain("Footprint Index</a>")
     expect(html).toContain("*:w-32")
     expect(html).not.toContain("<table")
     expect(html).not.toContain("<section")

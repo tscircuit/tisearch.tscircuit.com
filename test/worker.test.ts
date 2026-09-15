@@ -5,6 +5,7 @@ import {
 } from "cloudflare:test"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import worker from "../src/index"
+import { COMPATIBLE_ROUTES } from "../src/jlc/catalog"
 import { CATEGORY_DEFINITIONS } from "../src/categories"
 import { normalizeProduct } from "../src/normalize"
 import { saveParts } from "../src/parts-store"
@@ -75,7 +76,12 @@ describe("D1-only public catalog", () => {
     for (const category of CATEGORY_DEFINITIONS) {
       const response = await get(`${category.path}.json`)
       expect(response.status).toBe(200)
-      expect(((await response.json()) as any)[category.responseKey]).toEqual([])
+      const data = (await response.json()) as any
+      expect(
+        COMPATIBLE_ROUTES.includes(category.path)
+          ? Object.values(data)[0]
+          : data[category.responseKey],
+      ).toEqual([])
     }
     expect((await get("/api/search?q=MISSING123")).status).toBe(200)
     expect((await get("/components/list")).status).toBe(200)
@@ -170,7 +176,7 @@ describe("D1-only public catalog", () => {
         })
       ).headers.get("content-type"),
     ).toContain("application/json")
-    expect((await body("/categories/list.json")).categories).toHaveLength(66)
+    expect((await body("/categories/list.json")).categories).toHaveLength(93)
     expect(
       (await body("/package_index/list.json")).footprints[0].num_components,
     ).toBe(1)

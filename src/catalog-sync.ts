@@ -1,4 +1,5 @@
 import { CATEGORY_DEFINITIONS } from "./categories"
+import { TI_ROUTE_FAMILIES } from "./jlc/catalog"
 import { hydratePart } from "./catalog"
 import { standardFields } from "./jlc-compat"
 import { normalizeProduct } from "./normalize"
@@ -19,7 +20,12 @@ const getClient = (env: Env) =>
 // Public requests never call these jobs. D1 preserves cursors and import queues.
 export const discoverCatalog = async (env: Env) => {
   const now = Date.now()
-  const families = [...new Set(CATEGORY_DEFINITIONS.map((c) => c.query))]
+  const families = [
+    ...new Set([
+      ...CATEGORY_DEFINITIONS.map((c) => c.query),
+      ...Object.values(TI_ROUTE_FAMILIES).flat(),
+    ]),
+  ]
   await env.DB.batch(
     families.map((family) =>
       env.DB.prepare(

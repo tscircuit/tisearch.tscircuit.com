@@ -88,23 +88,7 @@ button { @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-3 r
   </body>
 </html>`
 
-export const renderHomePage = (): string => {
-  const links = [
-    { path: "/categories/list", label: "Categories" },
-    { path: "/footprint_index/list", label: "Package Index" },
-    ...CATEGORY_DEFINITIONS,
-  ]
-    .map(
-      ({ path, label }) =>
-        `<a href="${escapeHtml(path)}">${escapeHtml(label)}</a>`,
-    )
-    .join("")
-
-  return renderShell(
-    "/",
-    `<div><div class="flex flex-wrap gap-4 *:text-lg *:border *:rounded *:p-2 *:border-gray-300 *:w-32 *:text-sm *:text-center">${links}</div></div>`,
-  )
-}
+export { renderHomePage } from "./jlc/render"
 
 const renderStaticFilters = (
   category: CategoryDefinition | undefined,
