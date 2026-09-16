@@ -129,13 +129,25 @@ export class MetadataEnricher extends DurableObject<Env> {
           job.mappingAfter = rows.results.at(-1)!.ti_product_number
         else job.phase = "missing"
       } else {
-        const information = job.phase === "missing"
-        const row = await this.env.DB.prepare(
-          `SELECT ti_product_number FROM parts WHERE ${information ? "information_status" : "specification_status"}='pending' ORDER BY ti_product_number LIMIT 1`,
-        ).first<{ ti_product_number: string }>()
+        // Do not hold up specifications for the whole catalog while resolving
+        // the last missing product records. Give specs four of every five turns.
+        let information =
+          job.phase === "missing" && (job.targeted + job.specsChecked) % 5 === 4
+        const next = (info: boolean) =>
+          this.env.DB.prepare(
+            `SELECT ti_product_number FROM parts WHERE ${info ? "information_status" : "specification_status"}='pending'
+           ORDER BY CASE WHEN stock>0 AND COALESCE(json_array_length(raw_json,'$.category_routes'),0)>0 THEN 0
+                         WHEN stock>0 THEN 1 ELSE 2 END,
+                    stock DESC,ti_product_number LIMIT 1`,
+          ).first<{ ti_product_number: string }>()
+        let row = await next(information)
+        if (!row && job.phase === "missing") {
+          information = !information
+          row = await next(information)
+        }
         if (!row) {
-          job.phase = information ? "specifications" : "complete"
-          if (job.phase === "complete") job.completedAt = Date.now()
+          job.phase = "complete"
+          job.completedAt = Date.now()
         } else {
           await reserve()
           try {

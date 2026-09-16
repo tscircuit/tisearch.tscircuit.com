@@ -294,7 +294,7 @@ const handleFetch = async (
     )
   }
   if (pathname === "/api/enrichment/status") {
-    const [job, coverage] = await Promise.all([
+    const [job, coverage, categories] = await Promise.all([
       env.METADATA_ENRICHMENT.get(
         env.METADATA_ENRICHMENT.idFromName("existing-parts-v1"),
       )
@@ -309,8 +309,16 @@ const handleFetch = async (
         sum(specification_status='unavailable') AS specifications_unavailable,
         sum(COALESCE(json_array_length(raw_json,'$.category_routes'),0)>0) AS mapped_parts
         FROM parts`).first(),
+      env.DB.prepare(`SELECT category, count(*) AS total_parts,
+        sum(specification_status='available') AS specifications_available,
+        sum(specification_status='pending') AS specifications_pending,
+        sum(specification_status='unavailable') AS specifications_unavailable
+        FROM parts GROUP BY category ORDER BY category`).all(),
     ])
-    const response = jsonResponse({ job, coverage }, origin)
+    const response = jsonResponse(
+      { job, coverage, categories: categories.results },
+      origin,
+    )
     response.headers.set("cache-control", "no-store")
     return response
   }

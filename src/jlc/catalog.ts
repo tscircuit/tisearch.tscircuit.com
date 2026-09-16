@@ -59,6 +59,15 @@ const mcuFamilies = family(
   "low_power_mcus",
   "real_time_mcus",
 )
+// TI Product Information uses these leaf families, not its website's old
+// "Arm-based processors" grouping. Still apply the per-part classifiers.
+const processorFamilies = [
+  "Arm-based processors",
+  "Multimedia & industrial networking SoCs",
+  "Automotive driver assist SoCs",
+  "Automotive networking SoCs",
+  "Audio & radar DSP SoCs",
+]
 // An absent mapping is an empty category, never an unfiltered catalog query.
 export const TI_ROUTE_FAMILIES: Record<string, string[]> = {
   ...Object.fromEntries(
@@ -109,7 +118,7 @@ export const TI_ROUTE_FAMILIES: Record<string, string[]> = {
   analog_multiplexer: family("signal_multiplexers"),
   analog_switch: family("analog_switches"),
   microcontroller: mcuFamilies,
-  arm_processor: mcuFamilies,
+  arm_processor: [...mcuFamilies, ...processorFamilies],
   risc_v_processor: mcuFamilies,
   ldo: family("ldos"),
   voltage_regulator: family("ldos"),
@@ -128,8 +137,8 @@ export const TI_ROUTE_FAMILIES: Record<string, string[]> = {
     ...family("led_drivers", "led_backlight_drivers"),
     "LCD & OLED display power & drivers",
   ],
-  linux_capable_processor: ["Arm-based processors"],
-  npu_chip: ["Arm-based processors"],
+  linux_capable_processor: processorFamilies,
+  npu_chip: processorFamilies,
 }
 const specialColumns: Record<string, string[]> = {
   analog_switch: [
@@ -418,7 +427,7 @@ const belongs = (row: Record<string, any>, table: string) => {
   if (table === "buck_boost_converter")
     return /^buck[ -]boost$/i.test(String(row.topology))
   if (table === "arm_processor")
-    return /^ARM|^Cortex-/i.test(String(row.cpu_core))
+    return /\b(?:Arm|Cortex-[AMR]\d)/i.test(String(row.cpu_core))
   if (table === "risc_v_processor")
     return /^RISC-V$/i.test(String(row.cpu_core))
   if (table === "wifi_module")

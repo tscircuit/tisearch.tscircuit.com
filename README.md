@@ -110,10 +110,12 @@ The one-time metadata enrichment job is enabled with
 1. Scan TI Product Information (`/v1/products?Page=…&Size=100`), saving pages in
    private R2 storage. Match orderable part numbers and update existing D1 rows only.
 2. Re-evaluate saved metadata against the existing taxonomy, without TI requests.
-3. Look up remaining unmatched orderable parts individually. A TI 404 is recorded
-   as unavailable and does not remove the stored part.
-4. Fetch missing electrical parametrics per orderable part. Reuse specifications
-   already stored; do not assume different package variants have identical ratings.
+3. Interleave missing electrical specifications (four turns out of five) with
+   remaining unmatched product lookups. Prioritize stocked parts in mapped
+   categories, then other stocked parts, then out-of-stock parts. A TI 404 is
+   recorded as unavailable and does not remove the stored part.
+4. Finish whichever queue remains. Reuse specifications already stored; do not
+   assume different package variants have identical ratings.
 
 `ti_information` preserves TI's original product details and `ti_family` preserves
 its family. `category_routes` lists matching existing routes using their family
@@ -131,7 +133,9 @@ actual account limits and Retry-After responses take precedence. Full electrical
 enrichment can take weeks because it requires individual product requests.
 
 `/api/enrichment/status` reports progress, quota backoff, metadata coverage, and
-mapped part counts. It is read-only and cannot start work. Scheduled ticks resume
+mapped part counts. Its `categories` array reports available, pending, and
+unavailable specification counts for each TI family. It is read-only and cannot
+start work. Scheduled ticks resume
 the job; it stops after all existing rows have been checked. Setting the enrichment
 flag to false disables its alarms. The old discovery/import queues remain paused
 while enrichment is active. Periodic specification refresh resumes after this job
