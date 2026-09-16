@@ -76,6 +76,8 @@ export function standardFields(
         "Channels",
         "DAC channels",
         "ADC channels",
+        "Number of DAC channels",
+        "Number of ADC channels",
       ),
     ),
     output_voltage_min: number(vout, "Min"),

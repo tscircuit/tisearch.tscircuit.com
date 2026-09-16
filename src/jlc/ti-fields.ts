@@ -23,7 +23,7 @@ export function compatibilityFields(
   const number = (
     names: string[],
     edge?: "Min" | "Max",
-    unit?: "V" | "A" | "Hz" | "ohm" | "bytes",
+    unit?: "V" | "A" | "Hz" | "ohm" | "bytes" | "us" | "nA" | "uV" | "lsb",
   ) => {
     const spec = find(...names)
     const raw = edge
@@ -53,6 +53,10 @@ export function compatibilityFields(
         gsps: 1e9,
       },
       ohm: { ohm: 1, ohms: 1, ω: 1, kohm: 1e3, mohm: 0.001 },
+      us: { s: 1e6, ms: 1e3, us: 1, µs: 1, ns: 0.001 },
+      nA: { a: 1e9, ma: 1e6, ua: 1e3, µa: 1e3, na: 1 },
+      uV: { v: 1e6, mv: 1e3, uv: 1, µv: 1, uvrms: 1, µvrms: 1 },
+      lsb: { lsb: 1, "±lsb": 1 },
       bytes: {
         b: 1,
         byte: 1,
@@ -66,15 +70,24 @@ export function compatibilityFields(
     const factor = unit ? factors[unit][units] : 1
     return factor === undefined ? null : Number(raw) * factor
   }
-  const protocols = text(
-    "Interface",
-    "Interface type",
-    "Digital interface",
-    "Control interface",
-  )
+  const protocols =
+    [
+      "Interface",
+      "Interface type",
+      "Digital interface",
+      "Control interface",
+      "Communication interface",
+    ]
+      .map((name) => text(name))
+      .filter(Boolean)
+      .join(", ") || null
   const has = (protocol: string) => {
     const direct = number([protocol, `Number of ${protocol}s`])
     if (direct !== null) return direct > 0
+    const explicit = text(protocol)
+    if (explicit && /^(none|no|not supported)$/i.test(explicit)) return false
+    if (explicit && new RegExp(`\\b${protocol}\\b`, "i").test(explicit))
+      return true
     return protocols === null
       ? null
       : protocols
@@ -102,14 +115,23 @@ export function compatibilityFields(
       [
         "Sample rate",
         "Sampling rate",
+        "Sample/update rate",
         "Sample rate (max) (Msps)",
         "Sample rate (max) (ksps)",
       ],
       undefined,
       "Hz",
     ),
-    supply_voltage_min: number(["Supply voltage", "Vs", "Vcc"], "Min", "V"),
-    supply_voltage_max: number(["Supply voltage", "Vs", "Vcc"], "Max", "V"),
+    supply_voltage_min: number(
+      ["Supply voltage", "Vs", "Vcc", "VDD", "Supply voltage (VCC)"],
+      "Min",
+      "V",
+    ),
+    supply_voltage_max: number(
+      ["Supply voltage", "Vs", "Vcc", "VDD", "Supply voltage (VCC)"],
+      "Max",
+      "V",
+    ),
     input_voltage_min: number(["Vin", "Input voltage"], "Min", "V"),
     input_voltage_max: number(["Vin", "Input voltage"], "Max", "V"),
     output_current_max: number(["Iout", "Output current"], "Max", "A"),
@@ -143,6 +165,60 @@ export function compatibilityFields(
     has_usb: has("USB"),
     has_parallel_interface: has("Parallel"),
     has_serial_interface: has("Serial"),
+    settling_time_us: number(["Settling time"], undefined, "us"),
+    nonlinearity_lsb: number(["INL", "Integral nonlinearity"], "Max", "lsb"),
+    leakage_current_na: number(
+      ["ON-state leakage current", "Leakage current"],
+      "Max",
+      "nA",
+    ),
+    dropout_voltage: number(
+      ["Dropout voltage (Vdo)", "Dropout voltage"],
+      undefined,
+      "V",
+    ),
+    quiescent_current: number(
+      ["Iq", "Quiescent current (Iq)", "Supply current"],
+      undefined,
+      "A",
+    ),
+    power_supply_rejection_db: number(["PSRR at 100 KHz", "PSRR"], undefined),
+    output_noise_uvrms: number(["Noise", "Output noise"], undefined, "uV"),
+    switching_frequency: number(["Switching frequency"], undefined, "Hz"),
+    number_of_outputs: number(["Regulated outputs", "Number of outputs"]),
+    efficiency_percent: number(["Peak efficiency", "Efficiency"]),
+    dimming_method: text("Dimming method"),
+    has_smbus: has("SMBus"),
+    operating_system: text("Operating system"),
+  }
+  // These are explicit TI feature declarations, not defaults for missing data.
+  const features = [text("Features"), text("Peripherals")]
+    .filter(Boolean)
+    .join(", ")
+  for (const feature of [
+    "PWM",
+    "DMA",
+    "RTC",
+    "ADC",
+    "DAC",
+    "Comparator",
+    "Watchdog",
+  ]) {
+    const count = number([feature, `Number of ${feature} channels`])
+    const type = text(`${feature} type`)
+    fields[`has_${feature.toLowerCase()}`] =
+      count !== null
+        ? count > 0
+        : type && !/^(none|no)$/i.test(type)
+          ? true
+          : features && new RegExp(`\\b${feature}\\b`, "i").test(features)
+            ? true
+            : null
+  }
+  for (const converter of ["adc", "dac"]) {
+    const bits = text(`${converter} type`)?.match(/\b(\d+)[ -]bit\b/i)
+    fields[`${converter}_resolution_bits`] =
+      number([`${converter} resolution`]) ?? (bits ? Number(bits[1]) : null)
   }
   // Preserve previously imported explicit ratings if the current metadata omits them.
   for (const name of Object.keys(fields)) {
@@ -175,9 +251,26 @@ export function compatibilityFields(
         ).test(mpn)
       ) {
         fields.chip_family = `TI Sitara ${prefix}x`
-        fields.cpu_core = core
+        fields.cpu_core ??= core
+        fields.core_processor ??= core
         fields.architecture = architecture
       }
+    }
+    // For families beyond the legacy prefix list, require TI to explicitly
+    // declare Linux support and a recognized application CPU architecture.
+    const cpu = String(fields.cpu_core ?? "")
+    if (
+      /\bLinux\b/i.test(String(fields.operating_system)) &&
+      /Cortex[ -]A\d+/i.test(cpu)
+    ) {
+      const core = cpu.match(/Cortex[ -]A(\d+)/i)![1]
+      if (["5", "7", "8", "9", "15", "17", "32"].includes(core))
+        fields.architecture = "ARM32"
+      else if (
+        ["35", "53", "55", "57", "72", "73", "75", "76", "78"].includes(core)
+      )
+        fields.architecture = "ARM64"
+      if (fields.architecture) fields.chip_family ??= `TI ${mpn}`
     }
     for (const [prefix, tops, name] of [
       ["TDA4VM", 8, "C7x NPU (MMA)"],

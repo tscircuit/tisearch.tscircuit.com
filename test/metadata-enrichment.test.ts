@@ -6,6 +6,7 @@ import {
 } from "cloudflare:test"
 import { afterEach, expect, it, vi } from "vitest"
 import { MetadataEnricher } from "../src/metadata-enricher"
+import { TiClient } from "../src/ti-client"
 import { enrichPart, updateMetadata } from "../src/metadata-store"
 import { normalizeProduct } from "../src/normalize"
 import { saveParts } from "../src/parts-store"
@@ -303,6 +304,72 @@ it("records missing TI metadata, finishes the specs pass, and stops its alarm", 
     specification_status: "available",
     n: 1,
   })
+})
+
+it("prioritizes stocked mapped specifications while still resolving missing information", async () => {
+  await seed()
+  const visible = Array.from({ length: 5 }, (_, i) => ({
+    ...normalizeProduct({
+      store: {
+        ...catalog.catalog[0],
+        tiPartNumber: `VISIBLE${i}`,
+        quantity: 100 - i,
+      },
+      information: { ProductFamilyDescription: "Precision DACs (≤10 MSPS)" },
+    }),
+    category_routes: ["/dacs/list"],
+  }))
+  await saveParts(env, visible)
+  await env.DB.prepare(
+    "UPDATE parts SET information_status='available' WHERE ti_product_number LIKE 'VISIBLE%'",
+  ).run()
+  const specifications = vi
+    .spyOn(TiClient.prototype, "specifications")
+    .mockResolvedValue({ "Number of DAC channels": { Value: "1" } })
+  const information = vi
+    .spyOn(TiClient.prototype, "information")
+    .mockResolvedValue(info)
+  const stub = env.METADATA_ENRICHMENT.get(
+    env.METADATA_ENRICHMENT.newUniqueId(),
+  )
+  await runInDurableObject(stub, async (instance: MetadataEnricher, state) => {
+    const initial = await (
+      await instance.fetch(new Request("https://metadata/status"))
+    ).json<any>()
+    await state.storage.put("job", { ...initial, phase: "missing" })
+    for (let i = 0; i < 5; i++) {
+      const job = await state.storage.get<any>("job")
+      await state.storage.put("job", { ...job, nextRunAt: 0 })
+      await instance.alarm()
+    }
+    expect(specifications.mock.calls.map(([pn]) => pn)).toEqual([
+      "VISIBLE0",
+      "VISIBLE1",
+      "VISIBLE2",
+      "VISIBLE3",
+    ])
+    expect(information).toHaveBeenCalledWith(info.Identifier)
+    expect(await state.storage.get("job")).toMatchObject({
+      requestsToday: 5,
+      specsChecked: 4,
+      targeted: 1,
+    })
+    const job = await state.storage.get<any>("job")
+    await state.storage.put("job", {
+      ...job,
+      requestsToday: 1500,
+      nextRunAt: 0,
+    })
+    await instance.alarm()
+    expect(specifications).toHaveBeenCalledTimes(4)
+    expect((await state.storage.get<any>("job")).nextRunAt).toBe(
+      job.budgetResetAt,
+    )
+    await state.storage.deleteAlarm()
+  })
+  expect(
+    await env.DB.prepare("SELECT count(*) AS n FROM parts").first(),
+  ).toEqual({ n: 6 })
 })
 
 it("does not report an empty TI spec response as available or discard saved ratings", async () => {

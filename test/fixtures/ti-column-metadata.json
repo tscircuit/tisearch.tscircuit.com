@@ -1,0 +1,296 @@
+[
+  {
+    "mfr": "AM3354BZCZD80",
+    "generic_part_number": "AM3354",
+    "category": "Multimedia & industrial networking SoCs",
+    "description": "Sitara processor: Arm Cortex-A8, 3D graphics, CAN",
+    "package": "NFBGA",
+    "parametrics": {}
+  },
+  {
+    "mfr": "DAC3171IRGCR",
+    "generic_part_number": "DAC3171",
+    "category": "High-speed DACs (>10 MSPS)",
+    "description": "14-bit, 500-MSPS Digital-to-Analog Converter (DAC)",
+    "package": "VQFN",
+    "parametrics": {
+      "Reference type": {
+        "Value": "Ext, Int"
+      },
+      "Operating temperature range": {
+        "Unit": "°C",
+        "Range": {
+          "Min": "-40",
+          "Max": "85"
+        }
+      },
+      "Interpolation": {
+        "Value": "1x"
+      },
+      "Power consumption": {
+        "Value": "375",
+        "Unit": "mW"
+      },
+      "Architecture": {
+        "Value": "Current Source"
+      },
+      "Rating": {
+        "Value": "Catalog"
+      },
+      "SFDR": {
+        "Value": "82",
+        "Unit": "dB"
+      },
+      "Number of DAC channels": {
+        "Value": "1"
+      },
+      "Interface type": {
+        "Value": "DDR LVDS"
+      },
+      "Features": {
+        "Value": "Low Power"
+      },
+      "Sample/update rate": {
+        "Value": "500",
+        "Unit": "Msps"
+      },
+      "Resolution": {
+        "Value": "14",
+        "Unit": "Bits"
+      }
+    }
+  },
+  {
+    "mfr": "MSPM0C1104SDSGR",
+    "generic_part_number": "MSPM0C1104",
+    "category": "General-purpose MCUs",
+    "description": "24MHz Arm® Cortex®-M0+ MCU with 16KB flash, 1KB SRAM, 12-bit ADC",
+    "package": "WSON",
+    "parametrics": {
+      "Operating temperature range": {
+        "Unit": "°C",
+        "Range": {
+          "Min": "-40",
+          "Max": "125"
+        }
+      },
+      "Edge AI enabled": {
+        "Value": "No"
+      },
+      "Rating": {
+        "Value": "Catalog"
+      },
+      "UART": {
+        "Value": "1"
+      },
+      "CPU": {
+        "Value": "Arm Cortex-M0+"
+      },
+      "Security": {
+        "Value": "Secure debug"
+      },
+      "SPI": {
+        "Value": "1"
+      },
+      "Number of I2Cs": {
+        "Value": "1"
+      },
+      "TI functional safety category": {
+        "Value": "null"
+      },
+      "Nonvolatile memory": {
+        "Value": "16",
+        "Unit": "kByte"
+      },
+      "Number of GPIOs": {
+        "Value": "6, 14, 18"
+      },
+      "Flash memory": {
+        "Value": "16",
+        "Unit": "kByte"
+      },
+      "Hardware accelerators": {
+        "Value": "0"
+      },
+      "ADC type": {
+        "Value": "12-bit SAR"
+      },
+      "Frequency": {
+        "Value": "24",
+        "Unit": "MHz"
+      },
+      "Features": {
+        "Value": "5-V-tolerant I/Os, DMA, General purpose, LIN"
+      },
+      "Number of ADC channels": {
+        "Value": "3, 8, 10"
+      },
+      "Operating system": {
+        "Value": "BareMetal (No OS)"
+      },
+      "RAM": {
+        "Value": "1",
+        "Unit": "kByte"
+      }
+    }
+  },
+  {
+    "mfr": "5962-1222402VHA",
+    "generic_part_number": "TPS7A4501-SP",
+    "category": "Linear & low-dropout (LDO) regulators",
+    "description": "Radiation-hardened, QML-V, 1.5V to 20V input 1.5A low-dropout (LDO) regulator",
+    "package": "CFP",
+    "parametrics": {
+      "Output options": {
+        "Value": "Adjustable Output"
+      },
+      "Operating temperature range": {
+        "Unit": "°C",
+        "Range": {
+          "Min": "-55",
+          "Max": "125"
+        }
+      },
+      "Fixed output options": {
+        "Value": "0",
+        "Unit": "V"
+      },
+      "Radiation, TID": {
+        "Value": "100",
+        "Unit": "krad"
+      },
+      "Noise": {
+        "Value": "50",
+        "Unit": "µVrms"
+      },
+      "PSRR at 100 KHz": {
+        "Value": "45",
+        "Unit": "dB"
+      },
+      "Rating": {
+        "Value": "Space"
+      },
+      "Iout": {
+        "Unit": "A",
+        "Range": {
+          "Max": "1.5"
+        }
+      },
+      "Iq": {
+        "Value": "1",
+        "Unit": "mA"
+      },
+      "Thermal resistance θJA": {
+        "Value": "86",
+        "Unit": "°C/W"
+      },
+      "Vout": {
+        "Unit": "V",
+        "Range": {
+          "Min": "1.21",
+          "Max": "19.2"
+        }
+      },
+      "Regulated outputs": {
+        "Value": "1",
+        "Unit": "#"
+      },
+      "TI functional safety category": {
+        "Value": "null"
+      },
+      "Dropout voltage (Vdo)": {
+        "Value": "270",
+        "Unit": "mV"
+      },
+      "Accuracy": {
+        "Value": "3",
+        "Unit": "%"
+      },
+      "Features": {
+        "Value": "Enable"
+      },
+      "Vin": {
+        "Unit": "V",
+        "Range": {
+          "Min": "2.3",
+          "Max": "20"
+        }
+      },
+      "Radiation, SEL": {
+        "Value": "86",
+        "Unit": "MeV·cm2/mg"
+      },
+      "Load capacitance": {
+        "Unit": "µF",
+        "Range": {
+          "Min": "10"
+        }
+      }
+    }
+  },
+  {
+    "mfr": "LM36274YFFR",
+    "generic_part_number": "LM36274",
+    "category": "Backlight LED drivers",
+    "description": "Integrated backlight driver with LCD Bias",
+    "package": "DSBGA",
+    "parametrics": {
+      "Vout": {
+        "Unit": "V",
+        "Range": {
+          "Min": "27",
+          "Max": "30"
+        }
+      },
+      "Operating temperature range": {
+        "Unit": "°C",
+        "Range": {
+          "Min": "-40",
+          "Max": "85"
+        }
+      },
+      "Type": {
+        "Value": "Inductive"
+      },
+      "Peak efficiency": {
+        "Value": "92",
+        "Unit": "%"
+      },
+      "Switching frequency": {
+        "Unit": "kHz",
+        "Range": {
+          "Max": "1050"
+        }
+      },
+      "Duty cycle": {
+        "Unit": "%",
+        "Range": {
+          "Max": "92"
+        }
+      },
+      "Rating": {
+        "Value": "Catalog"
+      },
+      "Features": {
+        "Value": "Adjustable Switch Frequency, CABC, I2C control, OVP, Thermal shutdown"
+      },
+      "Vin": {
+        "Unit": "V",
+        "Range": {
+          "Min": "2.7",
+          "Max": "5"
+        }
+      },
+      "LED current per channel": {
+        "Value": "30",
+        "Unit": "mA"
+      },
+      "Topology": {
+        "Value": "Boost, Current Sink"
+      },
+      "Number of channels": {
+        "Value": "4"
+      }
+    }
+  }
+]
