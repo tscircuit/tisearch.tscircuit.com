@@ -61,6 +61,7 @@ it("preserves reference contracts and shows only TI-supported homepage tiles in 
   expect(home).not.toContain("posthog")
   expect(home).not.toContain('href="/barrel_jacks/list"')
   expect(home).not.toContain('href="/switches/list"')
+  expect(home).not.toContain('href="/risc_v_processors/list"')
   expect(home).toContain('href="/analog_switches/list"')
 })
 
