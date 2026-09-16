@@ -1,18 +1,25 @@
 import { CATEGORY_DEFINITIONS, type CategoryDefinition } from "./categories"
 import { standardFields } from "./jlc-compat"
+import { dacChannelsFromDescription } from "./dac-channels"
 import { applyPostFilters, buildTiFilterOptions } from "./normalize"
 import { createSearchRequest } from "./search-request"
 import type { Env, NormalizedPart, SearchPayload } from "./types"
 
 export const hydratePart = (raw: string): NormalizedPart => {
   const part = JSON.parse(raw) as NormalizedPart
+  const fields = standardFields(part.parametrics ?? {})
   return {
     ...part,
     ...Object.fromEntries(
-      Object.entries(standardFields(part.parametrics ?? {})).map(
-        ([name, value]) => [name, value ?? part[name] ?? null],
-      ),
+      Object.entries(fields).map(([name, value]) => [
+        name,
+        value ?? part[name] ?? null,
+      ]),
     ),
+    num_channels:
+      fields.num_channels ??
+      part.num_channels ??
+      dacChannelsFromDescription(part.category ?? "", part.description ?? ""),
     num_pins: part.pin_count,
     price1: part.price_breaks?.find((b) => b.quantity === 1)?.price ?? null,
   }
