@@ -119,7 +119,9 @@ export const TI_ROUTE_FAMILIES: Record<string, string[]> = {
   analog_switch: family("analog_switches"),
   microcontroller: mcuFamilies,
   arm_processor: [...mcuFamilies, ...processorFamilies],
-  risc_v_processor: mcuFamilies,
+  // No verified TI RISC-V family in the imported catalog. General-purpose
+  // MCUs (and descriptions saying only "RISC") do not establish RISC-V support.
+  risc_v_processor: [],
   ldo: family("ldos"),
   voltage_regulator: family("ldos"),
   boost_converter: family("dcdc_converters"),
